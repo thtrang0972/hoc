@@ -149,16 +149,18 @@
           <span>CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
         </div>
 
-        <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-5">
+        <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-6">
           Lắng nghe & Đồng hành <br>
           <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             học đường
           </span>
         </h1>
 
-        <p class="text-slate-600 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG. Nơi mọi lo âu về áp lực điểm số, thi cử, tình bạn, cảm xúc cá nhân và phòng chống bắt nạt học đường luôn được lắng nghe và bảo mật trọn vẹn.
-        </p>
+        <div class="max-w-3xl mx-auto mb-10 p-5 sm:p-6 rounded-3xl bg-white/80 backdrop-blur-xl border border-indigo-100 shadow-xl shadow-indigo-100/60 ring-1 ring-white/80">
+          <p class="text-slate-700 text-sm sm:text-lg font-medium leading-relaxed">
+            Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh <strong class="text-indigo-800 font-black">TRƯỜNG TH & THCS PHƯỚC HƯNG</strong>. Nơi mọi băn khoăn về áp lực thi cử, tình bạn và cảm xúc cá nhân luôn được lắng nghe, bảo vệ an toàn và bảo mật trọn vẹn.
+          </p>
+        </div>
 
         <!-- 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ -->
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
@@ -598,47 +600,43 @@
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        
-        <!-- Form login -->
-        <div class="md:col-span-6 glass-card p-6 sm:p-8 rounded-3xl shadow-xl">
-          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
-            <i data-lucide="lock" class="w-6 h-6"></i>
-          </div>
-          <h2 class="text-lg sm:text-xl font-black text-slate-800 mb-1 text-center">Đăng Nhập Quản Trị & Cô Thùy Trang</h2>
-          <p class="text-xs text-slate-500 mb-6 text-center">Dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)</p>
-
-          <form onsubmit="handleManualLogin(event)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Tài khoản:</label>
-              <input type="email" id="loginEmail" required placeholder="thuytrang.nguyen@school.edu.vn" class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none">
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu:</label>
-              <input type="password" id="loginPass" required placeholder="••••••••" class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none">
-            </div>
-            <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:from-indigo-700 hover:to-purple-700 transition">
-              Đăng Nhập Hệ Thống
-            </button>
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 text-center leading-relaxed">
-              Tài khoản được cấp độc quyền bởi Trường TH&THCS Phước Hưng cho BGH và Cô Trang.
-            </div>
-          </form>
+      <!-- Khung đăng nhập duy nhất - KHÔNG CÓ ĐĂNG NHẬP NHANH - Căn giữa nổi bật 3D -->
+      <div class="max-w-xl mx-auto glass-card p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/80">
+        <div class="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-300/40">
+          <i data-lucide="lock" class="w-8 h-8"></i>
         </div>
+        <h2 class="text-xl sm:text-2xl font-black text-slate-800 mb-2 text-center">Đăng Nhập Quản Trị & Cô Nguyễn Thị Thùy Trang</h2>
+        <p class="text-xs sm:text-sm text-slate-500 mb-6 text-center leading-relaxed">
+          Chỉ dành riêng cho <strong>Ban Giám Hiệu</strong> & <strong>Cô Nguyễn Thị Thùy Trang (Phòng 692)</strong>. Vui lòng nhập đúng tài khoản và mật khẩu để tiếp tục.
+        </p>
 
-        <!-- 1-Click Demo Accounts -->
-        <div class="md:col-span-6 glass-card p-6 sm:p-8 rounded-3xl shadow-xl space-y-3">
-          <h3 class="font-black text-sm text-slate-800 mb-1 flex items-center gap-1.5">
-            <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i>
-            <span>Đăng Nhập Nhanh 1-Click</span>
-          </h3>
-          <p class="text-xs text-slate-500 mb-2">Bấm "Vào ngay" để đăng nhập với quyền Cô Thùy Trang hoặc Quản trị:</p>
+        <form onsubmit="handleManualLogin(event)" class="space-y-4">
+          <div id="loginAlert" class="hidden"></div>
 
-          <div class="space-y-3 text-xs" id="demoAccountsList">
-            <!-- Injected via JS -->
+          <div>
+            <label class="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">Tài khoản hoặc Email:</label>
+            <input type="text" id="loginAccount" required placeholder="Nhập tài khoản (admin, quantri hoặc thuytrang, cotrang)..." class="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-400 bg-white shadow-inner font-medium">
           </div>
-        </div>
-
+          <div>
+            <label class="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">Mật khẩu:</label>
+            <input type="password" id="loginPass" required placeholder="••••••••" class="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-400 bg-white shadow-inner font-medium">
+          </div>
+          <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white font-black text-sm rounded-2xl shadow-xl shadow-indigo-300/50 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all">
+            ĐĂNG NHẬP VÀO HỆ THỐNG
+          </button>
+          
+          <div class="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-900 leading-relaxed space-y-1">
+            <div class="font-bold flex items-center gap-1.5">
+              <i data-lucide="shield-check" class="w-4 h-4 text-indigo-600"></i>
+              <span>Quy định bảo mật Trường TH&THCS Phước Hưng:</span>
+            </div>
+            <p class="text-slate-600 text-[11px]">
+              • <strong>Quản trị viên (BGH):</strong> Nhập tài khoản và mật khẩu quản trị.<br>
+              • <strong>Cô Nguyễn Thị Thùy Trang:</strong> Nhập tài khoản và mật khẩu chuyên viên tư vấn.<br>
+              • Toàn bộ học sinh và phụ huynh không cần đăng nhập khi sử dụng dịch vụ.
+            </p>
+          </div>
+        </form>
       </div>
     </section>
 
@@ -1339,23 +1337,7 @@
     }
 
     function renderDemoAccounts() {
-      const container = document.getElementById('demoAccountsList');
-      if (!container) return;
-      container.innerHTML = DEMO_ACCOUNTS.map(acc => `
-        <div class="p-4 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-xs transition flex items-center justify-between gap-3">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-extrabold text-xs text-slate-800">${acc.name}</span>
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.badge === 'ADMIN' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-purple-100 text-purple-800 border border-purple-200'}">${acc.badge}</span>
-            </div>
-            <div class="text-[11px] text-slate-600 font-medium mt-0.5">${acc.role}</div>
-            <div class="text-[10px] text-slate-400 font-mono mt-0.5">${acc.email} • Pass: ${acc.pass}</div>
-          </div>
-          <button onclick="loginDemo('${acc.email}', '${acc.pass}', '${acc.name}')" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-xl font-bold text-xs transition shadow-2xs shrink-0">
-            Vào ngay
-          </button>
-        </div>
-      `).join('');
+      // Đã loại bỏ hoàn toàn phần đăng nhập nhanh 1-click theo yêu cầu
     }
 
     function renderCurrentTabDetails() {
@@ -1577,11 +1559,50 @@
 
     function handleManualLogin(e) {
       e.preventDefault();
-      const email = document.getElementById('loginEmail').value;
-      currentUser = { email, displayName: email.split('@')[0] };
+      const accountInput = document.getElementById('loginAccount').value.trim().toLowerCase();
+      const pass = document.getElementById('loginPass').value;
+      const alertEl = document.getElementById('loginAlert');
+
+      const isAdmin = accountInput === 'admin' || accountInput === 'quantri' || accountInput.includes('admin') || accountInput.includes('quantri') || accountInput === 'bgh';
+      const isCounselor = accountInput === 'thuytrang' || accountInput === 'cotrang' || accountInput.includes('thuytrang') || accountInput.includes('c2phuochungap_trang') || accountInput.includes('counselor');
+
+      if (!isAdmin && !isCounselor) {
+        alertEl.className = "p-3.5 rounded-2xl bg-rose-50 text-rose-800 text-xs font-bold border border-rose-200 text-center";
+        alertEl.innerText = "Chỉ Quản trị viên (Ban Giám Hiệu) và Cô Nguyễn Thị Thùy Trang (Phòng 692) mới có tài khoản đăng nhập. Toàn bộ học sinh, phụ huynh và giáo viên đều có thể sử dụng cổng tư vấn mà không cần đăng nhập!";
+        alertEl.classList.remove('hidden');
+        return;
+      }
+
+      if (isAdmin) {
+        if (pass !== 'admin123' && pass !== 'admin@2026') {
+          alertEl.className = "p-3.5 rounded-2xl bg-rose-50 text-rose-800 text-xs font-bold border border-rose-200 text-center";
+          alertEl.innerText = "Mật khẩu quản trị viên không chính xác. Vui lòng kiểm tra lại!";
+          alertEl.classList.remove('hidden');
+          return;
+        }
+        currentUser = {
+          email: accountInput.includes('@') ? accountInput : 'quantri.minh@school.edu.vn',
+          displayName: 'Ban Giám Hiệu / Quản trị viên',
+          role: 'ADMIN'
+        };
+      } else if (isCounselor) {
+        if (pass !== 'demo123' && pass !== 'trang123' && pass !== 'phuochung692' && pass !== 'thuytrang123') {
+          alertEl.className = "p-3.5 rounded-2xl bg-rose-50 text-rose-800 text-xs font-bold border border-rose-200 text-center";
+          alertEl.innerText = "Mật khẩu của Cô Nguyễn Thị Thùy Trang không chính xác. Vui lòng kiểm tra lại!";
+          alertEl.classList.remove('hidden');
+          return;
+        }
+        currentUser = {
+          email: accountInput.includes('@') ? accountInput : 'c2phuochungap_trang@angiang.edu.vn',
+          displayName: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+          role: 'COUNSELOR'
+        };
+      }
+
+      alertEl.classList.add('hidden');
       updateAuthUI();
-      alert(`Đăng nhập thành công với email: ${email}!`);
-      switchTab('home');
+      alert(`Đăng nhập thành công với quyền: ${currentUser.displayName}!`);
+      switchTab('dashboard');
     }
 
     function logoutUser() {

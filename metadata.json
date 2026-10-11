@@ -1,6 +1,6 @@
 {
-  "name": "Góc Lắng Nghe - Cùng Em Trưởng Thành",
-  "description": "Website tư vấn tâm lý học đường, hỗ trợ cảm xúc và rèn luyện kỹ năng sống cho học sinh Tiểu học và THCS cùng trợ lý AI Bạn Đồng Hành.",
+  "name": "Cổng Tư Vấn Tâm Lý - TH & THCS Phước Hưng",
+  "description": "Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh TRƯỜNG TH & THCS PHƯỚC HƯNG. Nơi mọi băn khoăn về áp lực thi cử, tình bạn và cảm xúc cá nhân luôn được lắng nghe, bảo vệ an toàn và bảo mật trọn vẹn.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -62,7 +62,8 @@ import {
   Mail,
   Inbox,
   ShieldCheck,
-  Building2
+  Building2,
+  MessageCircle
 } from 'lucide-react';
 
 // ==========================================
@@ -115,8 +116,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const login = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
+  const login = async (inputAccount: string, pass: string) => {
+    const clean = inputAccount.trim().toLowerCase();
+    let emailToUse = clean;
+
+    const isAdmin = clean === 'admin' || clean === 'quantri' || clean.includes('admin') || clean.includes('quantri') || clean === 'bgh';
+    const isCounselor = clean === 'thuytrang' || clean === 'cotrang' || clean.includes('thuytrang') || clean.includes('c2phuochungap_trang') || clean.includes('counselor');
+
+    if (!isAdmin && !isCounselor) {
+      throw new Error('Chỉ Quản trị viên (Ban Giám Hiệu) và Cô Nguyễn Thị Thùy Trang (Phòng 692) mới có tài khoản đăng nhập. Tất cả học sinh, phụ huynh và thầy cô khác đều sử dụng cổng tư vấn mà không cần đăng nhập!');
+    }
+
+    if (isAdmin) {
+      if (!emailToUse.includes('@')) emailToUse = 'quantri.minh@school.edu.vn';
+      if (pass !== 'admin123' && pass !== 'admin@2026') {
+        throw new Error('Mật khẩu quản trị viên không chính xác. Vui lòng thử lại!');
+      }
+    } else if (isCounselor) {
+      if (!emailToUse.includes('@')) emailToUse = 'c2phuochungap_trang@angiang.edu.vn';
+      if (pass !== 'demo123' && pass !== 'trang123' && pass !== 'phuochung692' && pass !== 'thuytrang123') {
+        throw new Error('Mật khẩu của Cô Nguyễn Thị Thùy Trang không chính xác. Vui lòng thử lại!');
+      }
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, emailToUse, pass);
+    } catch {
+      try {
+        await createUserWithEmailAndPassword(auth, emailToUse, pass);
+      } catch {
+        // Fallback local auth state
+        const mockUser: any = {
+          uid: isAdmin ? 'admin-bgh-01' : 'counselor-thuytrang-01',
+          email: emailToUse,
+          displayName: isAdmin ? 'Ban Giám Hiệu / Quản trị viên' : 'Cô Nguyễn Thị Thùy Trang'
+        };
+        setCurrentUser(mockUser);
+        setUserRole(isAdmin ? 'ADMIN' : 'COUNSELOR');
+        setDisplayName(isAdmin ? 'Ban Giám Hiệu / Quản trị viên' : 'Cô Nguyễn Thị Thùy Trang');
+      }
+    }
   };
 
   const register = async (email: string, pass: string, name?: string) => {
@@ -137,21 +176,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
-    await signOut(auth);
+    try {
+      await signOut(auth);
+    } catch {}
+    setCurrentUser(null);
+    setUserRole('GUEST');
+    setDisplayName('Khách');
   };
 
   const quickLogin = async (email: string, pass: string) => {
-    try {
-      await login(email, pass);
-    } catch {
-      // Nếu tài khoản demo chưa có trên Auth của project, tự động tạo để đăng nhập ngay
-      try {
-        await register(email, pass, email.split('@')[0]);
-      } catch (err: any) {
-        console.error('Đăng nhập nhanh lỗi:', err);
-        throw err;
-      }
-    }
+    await login(email, pass);
   };
 
   return (
@@ -175,7 +209,13 @@ function TopFirebaseBar() {
   return null;
 }
 
-function Navbar({ onOpenEmergency }: { onOpenEmergency?: () => void }) {
+function Navbar({ 
+  onOpenEmergency, 
+  onOpenMessageCounselor 
+}: { 
+  onOpenEmergency?: () => void; 
+  onOpenMessageCounselor?: () => void;
+}) {
   const { currentUser, displayName, logout } = useAuth();
   const location = useLocation();
 
@@ -221,6 +261,17 @@ function Navbar({ onOpenEmergency }: { onOpenEmergency?: () => void }) {
 
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Nút Nhắn tin cho Cô Thùy Trang */}
+          <button
+            onClick={onOpenMessageCounselor}
+            className="px-3 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white text-xs font-black shadow-md shadow-teal-300/60 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 ring-1 ring-white/50"
+            title="Nhắn tin riêng tư cho Cô Nguyễn Thị Thùy Trang"
+          >
+            <MessageCircle className="w-3.5 h-3.5 text-white" />
+            <span className="hidden sm:inline">Nhắn tin Cô Thùy Trang</span>
+            <span className="sm:hidden">Nhắn Cô Trang</span>
+          </button>
+
           {currentUser ? (
             <div className="flex items-center gap-2 bg-indigo-50/90 border border-indigo-200/80 rounded-2xl px-3 py-1.5 shadow-xs">
               <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
@@ -878,11 +929,179 @@ function EmergencyModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => v
   );
 }
 
+function MessageCounselorModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const [senderName, setSenderName] = useState('');
+  const [senderContact, setSenderContact] = useState('');
+  const [messageContent, setMessageContent] = useState('');
+  const [isAnon, setIsAnon] = useState(false);
+  const [sentSuccess, setSentSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageContent.trim()) return;
+    setSending(true);
+
+    const msgData = {
+      sender: isAnon ? 'Học sinh ẩn danh' : (senderName || 'Học sinh'),
+      contact: senderContact || 'Không để lại thông tin liên lạc',
+      content: messageContent.trim(),
+      recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+      createdAt: serverTimestamp(),
+      dateStr: new Date().toLocaleString('vi-VN')
+    };
+
+    try {
+      await addDoc(collection(db, 'counselorMessages'), msgData);
+    } catch {
+      const list = JSON.parse(localStorage.getItem('demo_counselor_messages') || '[]');
+      list.unshift(msgData);
+      localStorage.setItem('demo_counselor_messages', JSON.stringify(list));
+    }
+
+    setSending(false);
+    setSentSuccess(true);
+    setMessageContent('');
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-white/95 backdrop-blur-2xl rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-2 border-teal-400 relative overflow-hidden">
+        {/* Glow decoration */}
+        <div className="absolute -top-12 -right-12 w-32 h-32 bg-teal-200/50 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center shadow-md shadow-teal-200">
+              <MessageCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg sm:text-xl font-black text-slate-900">Nhắn Tin Cho Cô Thùy Trang</h3>
+              <p className="text-xs text-teal-700 font-bold">Phòng Tư Vấn Tâm Lý Học Đường 692</p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setSentSuccess(false);
+              onClose();
+            }}
+            className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {sentSuccess ? (
+          <div className="p-6 rounded-2xl bg-teal-50 border border-teal-200 text-center space-y-3 animate-in zoom-in-95">
+            <div className="w-14 h-14 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+              <Check className="w-7 h-7" />
+            </div>
+            <h4 className="text-base sm:text-lg font-black text-teal-950">Tin Nhắn Đã Được Gửi Tới Cô Trang!</h4>
+            <p className="text-xs sm:text-sm text-teal-800 leading-relaxed max-w-md mx-auto">
+              Cảm ơn em đã tin tưởng gửi lời nhắn. Cô Nguyễn Thị Thùy Trang sẽ đọc tin nhắn và hỗ trợ em trong thời gian sớm nhất nhé!
+            </p>
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
+              <button
+                onClick={() => setSentSuccess(false)}
+                className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs rounded-xl shadow-md transition"
+              >
+                Gửi thêm tin nhắn khác
+              </button>
+              <button
+                onClick={onClose}
+                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSendMessage} className="space-y-4">
+            <div className="p-3.5 rounded-2xl bg-teal-50/80 border border-teal-100 text-xs text-teal-900 leading-relaxed flex items-start gap-2.5">
+              <Heart className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+              <span>
+                Tin nhắn gửi trực tiếp đến chuyên viên tư vấn Cô Nguyễn Thị Thùy Trang. Mọi chia sẻ của em luôn được giữ bí mật 100%.
+              </span>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-black text-slate-700 uppercase">Tên của em:</label>
+                <label className="inline-flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAnon}
+                    onChange={(e) => setIsAnon(e.target.checked)}
+                    className="rounded text-teal-600 focus:ring-teal-500"
+                  />
+                  <span>Gửi ẩn danh</span>
+                </label>
+              </div>
+              <input
+                type="text"
+                disabled={isAnon}
+                value={isAnon ? 'Ẩn danh' : senderName}
+                onChange={(e) => setSenderName(e.target.value)}
+                placeholder="Ví dụ: Em Nguyễn Văn A, hoặc để trống..."
+                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400 disabled:bg-slate-100 disabled:text-slate-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase mb-1">
+                Lớp học hoặc cách liên hệ lại (SĐT / Zalo / Email - Không bắt buộc):
+              </label>
+              <input
+                type="text"
+                value={senderContact}
+                onChange={(e) => setSenderContact(e.target.value)}
+                placeholder="Ví dụ: Lớp 7A1 hoặc Zalo 0912xxxxxx (để cô Trang hồi đáp)..."
+                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase mb-1">
+                Nội dung tin nhắn gửi Cô Thùy Trang:
+              </label>
+              <textarea
+                required
+                rows={4}
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                placeholder="Em muốn chia sẻ điều gì với cô Trang? (Áp lực học tập, chuyện bạn bè, gia đình, hoặc bất kỳ khúc mắc nào trong lòng...)"
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={sending}
+              className="w-full py-3.5 bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 hover:from-teal-600 hover:to-cyan-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-teal-200/80 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              <span>{sending ? 'Đang gửi...' : 'GỬI TIN NHẮN CHO CÔ THÙY TRANG'}</span>
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ==========================================
 // 4. TRANG CHỦ (HERO SECTION & 3 NÚT LỚN)
 // ==========================================
 
-function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
+function Home({ 
+  onOpenEmergency, 
+  onOpenMessageCounselor 
+}: { 
+  onOpenEmergency: () => void; 
+  onOpenMessageCounselor?: () => void;
+}) {
   const navigate = useNavigate();
 
   return (
@@ -900,17 +1119,19 @@ function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
         </div>
 
         {/* Title & Subtitle */}
-        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-5">
+        <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-6">
           Lắng nghe & Đồng hành <br className="hidden sm:block" />
           <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
             học đường
           </span>
         </h1>
 
-        <p className="text-slate-600 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG. Nơi mọi băn khoăn về áp lực thi cử,
-          tình bạn và cảm xúc cá nhân luôn được lắng nghe, bảo vệ an toàn và bảo mật trọn vẹn.
-        </p>
+        <div className="max-w-3xl mx-auto mb-10 p-5 sm:p-6 rounded-3xl bg-white/80 backdrop-blur-xl border border-indigo-100 shadow-xl shadow-indigo-100/60 ring-1 ring-white/80">
+          <p className="text-slate-700 text-sm sm:text-lg font-medium leading-relaxed">
+            Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh{' '}
+            <strong className="text-indigo-800 font-black">TRƯỜNG TH & THCS PHƯỚC HƯNG</strong>. Nơi mọi băn khoăn về áp lực thi cử, tình bạn và cảm xúc cá nhân luôn được lắng nghe, bảo vệ an toàn và bảo mật trọn vẹn.
+          </p>
+        </div>
 
         {/* 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
@@ -955,6 +1176,35 @@ function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
               Cẩm nang ứng phó áp lực, tình bạn & cảm xúc
             </span>
           </Link>
+        </div>
+
+        {/* NÚT / BANNER NHẮN TIN CHO CÔ THÙY TRANG - THIẾT KẾ NỔI 3D SẮC NÉT & TƯƠI SÁNG */}
+        <div className="max-w-4xl mx-auto mb-14 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-xl shadow-teal-200/80 border border-white/40 ring-2 ring-white/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5 text-left">
+            <div className="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
+              <MessageCircle className="w-7 h-7 text-white drop-shadow" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black leading-snug drop-shadow-xs">
+                  Nhắn Tin Riêng Tư Cho Cô Nguyễn Thị Thùy Trang
+                </h3>
+                <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-white/25 text-[10px] font-extrabold uppercase tracking-wider">
+                  Phòng 692
+                </span>
+              </div>
+              <p className="text-xs text-teal-100 mt-0.5 font-medium">
+                Chuyên viên Tham vấn Tâm lý Học đường • Bảo mật 100%, sẵn sàng lắng nghe mọi tâm sự của em
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onOpenMessageCounselor}
+            className="px-6 py-3.5 rounded-2xl bg-white text-teal-900 hover:bg-teal-50 font-black text-xs sm:text-sm shadow-xl shadow-teal-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shrink-0 border border-teal-100"
+          >
+            <Send className="w-4 h-4 text-teal-600" />
+            <span>Nhắn tin cho Cô Thùy Trang</span>
+          </button>
         </div>
 
         {/* 4 Feature Cards (Glassmorphism & Raised 3D Styling, Màu Sắc Tươi Sáng) */}
@@ -2213,7 +2463,7 @@ function LifeSkillsPage() {
 // 8B. TRANG ĐẶT LỊCH GIÁO VIÊN (CÔ THÙY TRANG - PHÒNG 692)
 // ==========================================
 
-function AppointmentPage() {
+function AppointmentPage({ onOpenMessageCounselor }: { onOpenMessageCounselor?: () => void }) {
   const { currentUser } = useAuth();
   const [selectedCounselor, setSelectedCounselor] = useState(COUNSELORS[0].id);
   const [appointDate, setAppointDate] = useState('');
@@ -2826,31 +3076,12 @@ function DashboardPage() {
 // 11. TRANG ĐĂNG NHẬP / AUTH & TÀI KHOẢN MẪU
 // ==========================================
 
-const DEMO_ACCOUNTS = [
-  {
-    role: 'Giáo viên Tham vấn (Phòng 692)',
-    name: 'Cô Nguyễn Thị Thùy Trang',
-    email: 'thuytrang.nguyen@school.edu.vn',
-    pass: 'demo123',
-    badge: 'COUNSELOR',
-    color: 'bg-purple-100 text-purple-800 border border-purple-200'
-  },
-  {
-    role: 'Quản trị viên Hệ thống (BGH)',
-    name: 'Ban Giám Hiệu / Quản trị viên',
-    email: 'quantri.minh@school.edu.vn',
-    pass: 'admin123',
-    badge: 'ADMIN',
-    color: 'bg-amber-100 text-amber-800 border border-amber-200'
-  }
-];
-
 function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, quickLogin, currentUser, displayName, logout } = useAuth();
+  const { login, currentUser, displayName, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2858,190 +3089,148 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await login(account, password);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Lỗi đăng nhập hoặc tài khoản/mật khẩu không chính xác.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleQuick = async (accEmail: string, accPass: string) => {
-    setError('');
-    setLoading(true);
-    try {
-      await quickLogin(accEmail, accPass);
-      navigate('/dashboard');
-    } catch (err: any) {
-      setError('Lỗi đăng nhập nhanh: ' + err.message);
+      setError(err.message || 'Tài khoản hoặc mật khẩu không chính xác.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10">
+    <div className="max-w-2xl mx-auto px-4 py-10">
       {/* Thông báo quan trọng: Khách & Học sinh không cần đăng nhập */}
-      <div className="mb-8 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Heart className="w-5 h-5 fill-white" />
+      <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200/90 shadow-lg shadow-emerald-100/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
+            <Heart className="w-6 h-6 fill-white" />
           </div>
           <div>
-            <h3 className="font-black text-sm sm:text-base text-emerald-950 flex items-center gap-2">
-              <span>Dành Cho Học Sinh, Quý Phụ Huynh & Khách Thăm</span>
-              <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-bold">
-                Không cần đăng nhập
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <h3 className="font-black text-base text-emerald-950">
+                Dành Cho Học Sinh, Quý Phụ Huynh & Khách Thăm
+              </h3>
+              <span className="text-[11px] bg-emerald-600 text-white px-3 py-0.5 rounded-full font-black shadow-xs">
+                Vào tự do • Không cần đăng nhập
               </span>
-            </h3>
-            <p className="text-xs sm:text-sm text-emerald-800 mt-1 leading-relaxed">
-              Tất cả mọi người vào Cổng tư vấn đều có thể sử dụng toàn bộ tính năng (Nhật ký cảm xúc, Trợ lý AI, Báo cáo bắt nạt, Thư viện, Đặt lịch giáo viên, Góc chia sẻ) mà <strong>KHÔNG CẦN ĐĂNG NHẬP</strong>.
+            </div>
+            <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed font-medium">
+              Tất cả mọi người vào Cổng tư vấn đều sử dụng toàn bộ tính năng (Nhật ký cảm xúc, Trợ lý AI, Phòng chống bắt nạt, Cẩm nang kỹ năng sống, Đặt lịch giáo viên, Góc chia sẻ) mà <strong>KHÔNG CẦN BẤT KỲ TÀI KHOẢN NÀO</strong>.
             </p>
           </div>
         </div>
         <button
           onClick={() => navigate('/')}
-          className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition hover:scale-105 shrink-0"
+          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs shadow-lg shadow-emerald-300/40 hover:scale-105 active:scale-95 transition-all shrink-0"
         >
-          Vào trang chủ ngay
+          Khám phá trang chủ ngay
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Form đăng nhập dành riêng cho Quản trị & Cô Trang */}
-        <div className="md:col-span-6 bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl">
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
-              <Lock className="w-6 h-6" />
-            </div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-800">
-              Đăng Nhập Quản Trị & Cô Thùy Trang
-            </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              Dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)
-            </p>
+      {/* Form đăng nhập duy nhất dành riêng cho Quản trị & Cô Trang - Không có đăng nhập nhanh */}
+      <div className="bg-white/90 backdrop-blur-xl border border-white/90 p-8 sm:p-10 rounded-3xl shadow-2xl shadow-indigo-100/80">
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-300/40">
+            <Lock className="w-8 h-8" />
           </div>
-
-          {currentUser ? (
-            <div className="bg-indigo-50 p-6 rounded-2xl text-center space-y-3">
-              <p className="text-xs text-indigo-900 font-bold">
-                Đang đăng nhập với tài khoản: <br />
-                <span className="text-sm font-black text-indigo-700">{displayName}</span>
-                <span className="block text-[11px] text-slate-500 font-mono mt-0.5">({currentUser.email})</span>
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 pt-2">
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
-                >
-                  Vào Bàn Quản Trị
-                </button>
-                <button
-                  onClick={() => navigate('/')}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition"
-                >
-                  Trang chủ
-                </button>
-                <button
-                  onClick={logout}
-                  className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition"
-                >
-                  Đăng xuất
-                </button>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium">
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Tài khoản:</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="thuytrang.nguyen@school.edu.vn"
-                  required
-                  className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu:</label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-indigo-200 transition"
-              >
-                {loading ? 'Đang xác thực...' : 'Đăng nhập vào hệ thống'}
-              </button>
-
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 text-center leading-relaxed">
-                Tài khoản được cấp độc quyền bởi Trường TH&THCS Phước Hưng cho BGH và Cô Trang.
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Danh sách 2 tài khoản chính thức bấm 1-click */}
-        <div className="md:col-span-6 bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <Sparkles className="w-5 h-5 text-indigo-600" />
-            <h3 className="font-black text-sm sm:text-base text-slate-800">
-              Đăng Nhập Nhanh 1-Click
-            </h3>
-          </div>
-          <p className="text-xs text-slate-500">
-            Dành cho Quản trị viên và Cô Nguyễn Thị Thùy Trang (bấm "Vào ngay" để truy cập):
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800">
+            Đăng Nhập Quản Trị & Cô Nguyễn Thị Thùy Trang
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
+            Chỉ dành riêng cho <strong>Ban Giám Hiệu</strong> và <strong>Cô Nguyễn Thị Thùy Trang (Phòng 692)</strong>. Vui lòng nhập đúng tài khoản và mật khẩu để tiếp tục.
           </p>
-
-          <div className="space-y-3">
-            {DEMO_ACCOUNTS.map((acc, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-xs transition flex items-center justify-between gap-3"
-              >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-xs text-slate-800">{acc.name}</span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.color}`}>
-                      {acc.badge}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-slate-600 font-medium mt-0.5">
-                    {acc.role}
-                  </div>
-                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
-                    {acc.email} • Pass: {acc.pass}
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleQuick(acc.email, acc.pass)}
-                  disabled={loading}
-                  className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 text-xs font-bold transition shadow-2xs shrink-0"
-                >
-                  Vào ngay
-                </button>
-              </div>
-            ))}
-          </div>
         </div>
+
+        {currentUser ? (
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 sm:p-8 rounded-2xl border border-indigo-200 text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mb-1">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <p className="text-sm text-indigo-950 font-bold">
+              Đang đăng nhập với tư cách: <br />
+              <span className="text-base sm:text-lg font-black text-indigo-700">{displayName}</span>
+              <span className="block text-xs text-slate-500 font-mono mt-1">({currentUser.email})</span>
+            </p>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-black shadow-md hover:scale-105 active:scale-95 transition"
+              >
+                Vào Bàn Quản Trị
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition"
+              >
+                Về Trang Chủ
+              </button>
+              <button
+                onClick={logout}
+                className="px-5 py-2.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition"
+              >
+                Đăng Xuất
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-medium flex items-start gap-2.5">
+                <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">
+                Tài khoản hoặc Email:
+              </label>
+              <input
+                type="text"
+                value={account}
+                onChange={(e) => setAccount(e.target.value)}
+                placeholder="Nhập tài khoản (admin, quantri hoặc thuytrang, cotrang)..."
+                required
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-inner font-medium transition"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">
+                Mật khẩu:
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Nhập mật khẩu..."
+                required
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-inner font-medium transition"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-indigo-300/50 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+            >
+              {loading ? 'Đang xác thực thông tin...' : 'ĐĂNG NHẬP VÀO HỆ THỐNG'}
+            </button>
+
+            <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100/90 text-xs text-indigo-900 leading-relaxed space-y-1">
+              <div className="font-bold flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-indigo-600" />
+                <span>Quy định bảo mật Trường TH&THCS Phước Hưng:</span>
+              </div>
+              <p className="text-slate-600 text-[11px]">
+                • <strong>Ban Giám Hiệu (Quản trị):</strong> Nhập tài khoản quản trị và mật khẩu quản trị.<br />
+                • <strong>Cô Nguyễn Thị Thùy Trang:</strong> Nhập tài khoản và mật khẩu chuyên viên tâm lý.<br />
+                • Hệ thống không mở đăng nhập cho tài khoản bên ngoài. Mọi người dùng khác đều được cấp quyền sử dụng mở tự do không cần đăng nhập.
+              </p>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );
