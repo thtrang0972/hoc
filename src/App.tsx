@@ -57,7 +57,12 @@ import {
   FileText,
   HelpCircle,
   Share2,
-  ChevronRight
+  ChevronRight,
+  MapPin,
+  Mail,
+  Inbox,
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 
 // ==========================================
@@ -91,10 +96,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (email.includes('admin') || email.includes('quantri')) {
           setUserRole('ADMIN');
           setDisplayName('Quản trị viên hệ thống');
-        } else if (email.includes('tuananh') || email.includes('counselor-1')) {
-          setUserRole('COUNSELOR');
-          setDisplayName('ThS. Nguyễn Tuấn Anh');
-        } else if (email.includes('thuytrang') || email.includes('counselor-2')) {
+        } else if (email.includes('thuytrang') || email.includes('counselor')) {
           setUserRole('COUNSELOR');
           setDisplayName('Cô Nguyễn Thị Thùy Trang');
         } else if (email.includes('gvcn') || email.includes('lan')) {
@@ -170,103 +172,64 @@ export const useAuth = () => {
 // ==========================================
 
 function TopFirebaseBar() {
-  return (
-    <div className="sticky top-0 z-50 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white px-3 py-1.5 text-xs font-semibold shadow-md flex items-center justify-between backdrop-blur-md">
-      <div className="flex items-center gap-2 max-w-5xl mx-auto w-full justify-between px-2">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200"></span>
-          </span>
-          <span className="tracking-wide uppercase font-black bg-white/20 px-2 py-0.5 rounded text-[11px] border border-white/30">
-            🔥 FIREBASE CONNECTED
-          </span>
-          <span className="text-white/95 text-[11px] sm:text-xs truncate">
-            Dự án: <strong className="font-extrabold underline decoration-white/50">hinh123-fd678</strong> đang hoạt động ổn định trên Firestore & Auth
-          </span>
-        </div>
-        <div className="hidden md:flex items-center gap-2 text-[11px] text-white/90">
-          <span className="bg-white/15 px-2 py-0.5 rounded-full">Cloud Firestore Active</span>
-          <span className="bg-white/15 px-2 py-0.5 rounded-full">Auth 2.0</span>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 }
 
-function Navbar({ onOpenEmergency }: { onOpenEmergency: () => void }) {
+function Navbar({ onOpenEmergency }: { onOpenEmergency?: () => void }) {
   const { currentUser, displayName, logout } = useAuth();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   const navLinks = [
-    { to: '/', label: 'Trang chủ' },
-    { to: '/cam-xuc', label: 'Cảm xúc' },
-    { to: '/tro-ly-ai', label: 'Trợ lý AI' },
-    { to: '/chia-se', label: 'Góc chia sẻ' },
-    { to: '/chong-bat-nat', label: 'Chống bắt nạt' },
-    { to: '/thu-vien', label: 'Thư viện' },
-    { to: '/bai-viet-da-luu', label: 'Đã lưu' },
-    { to: '/dang-ky-tu-van', label: 'Đặt lịch' },
-    { to: '/dashboard', label: 'Quản trị' },
+    { to: '/', label: 'Trang chủ', icon: Heart },
+    { to: '/tro-ly-ai', label: 'Trợ lý AI', icon: Bot },
+    { to: '/chong-bat-nat', label: 'Phòng chống bắt nạt học đường', icon: ShieldAlert },
+    { to: '/cam-xuc', label: 'Cảm xúc', icon: Smile },
+    { to: '/chia-se', label: 'Góc chia sẻ', icon: MessageSquare },
+    { to: '/ky-nang-song', label: 'Kỹ năng sống', icon: Sparkles },
+    { to: '/dang-ky-tu-van', label: 'Đặt lịch giáo viên', icon: Calendar },
+    { to: '/dashboard', label: 'Quản Trị', icon: ShieldCheck },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/dashboard' || path === '/quan-tri') {
+      return location.pathname === '/dashboard' || location.pathname === '/quan-tri';
+    }
+    if (path === '/ky-nang-song' || path === '/thu-vien') {
+      return location.pathname === '/ky-nang-song' || location.pathname === '/thu-vien';
+    }
+    return location.pathname === path;
+  };
 
   return (
-    <nav className="sticky top-[31px] z-40 backdrop-blur-xl bg-white/75 border-b border-white/60 shadow-xs transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+    <nav className="sticky top-0 z-40 backdrop-blur-xl bg-white/90 border-b border-indigo-100/90 shadow-sm transition-all">
+      {/* Hàng 1: Logo trường + Nút Tài khoản / Đăng nhập */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
+        <Link to="/" className="flex items-center gap-2.5 group shrink-0">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-300 group-hover:scale-105 transition-transform shrink-0 ring-2 ring-white/60">
             <Heart className="w-5 h-5 fill-white" />
           </div>
           <div>
-            <span className="text-base sm:text-lg font-black bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 bg-clip-text text-transparent block leading-tight">
-              Tâm Lý Học Đường
+            <span className="text-sm sm:text-base md:text-lg font-black bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 bg-clip-text text-transparent block leading-tight">
+              CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG
             </span>
-            <span className="text-[10px] font-medium text-slate-500 block leading-none">
-              Lắng nghe & Đồng hành cùng em
+            <span className="text-[10px] sm:text-[11px] font-bold text-indigo-800 tracking-wide block leading-none mt-0.5">
+              TRƯỜNG TH&THCS PHƯỚC HƯNG
             </span>
           </div>
         </Link>
 
-        {/* Desktop Menu */}
-        <div className="hidden lg:flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-          {navLinks.map((link) => (
-            <Link
-              key={link.to}
-              to={link.to}
-              className={`px-3 py-1.5 rounded-xl transition-all ${
-                isActive(link.to)
-                  ? 'bg-indigo-600 text-white shadow-xs font-bold'
-                  : 'hover:bg-indigo-50 hover:text-indigo-600'
-              }`}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Right Action buttons */}
-        <div className="hidden sm:flex items-center gap-2.5">
-          <button
-            onClick={onOpenEmergency}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-200 hover:scale-105 active:scale-95 transition-all"
-          >
-            <PhoneCall className="w-3.5 h-3.5 animate-bounce" />
-            <span>SOS 111</span>
-          </button>
-
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 shrink-0">
           {currentUser ? (
-            <div className="flex items-center gap-2 bg-indigo-50/70 border border-indigo-100 rounded-xl px-2.5 py-1">
-              <User className="w-3.5 h-3.5 text-indigo-600" />
-              <span className="text-xs font-bold text-indigo-900 max-w-[120px] truncate" title={currentUser.email || ''}>
+            <div className="flex items-center gap-2 bg-indigo-50/90 border border-indigo-200/80 rounded-2xl px-3 py-1.5 shadow-xs">
+              <User className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+              <span className="text-xs font-bold text-indigo-900 max-w-[120px] sm:max-w-[160px] truncate" title={currentUser.email || ''}>
                 {displayName}
               </span>
               <button
                 onClick={logout}
-                className="text-slate-400 hover:text-rose-600 p-1 transition"
+                className="text-slate-400 hover:text-rose-600 p-1 transition rounded-lg hover:bg-rose-50"
                 title="Đăng xuất"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -275,112 +238,557 @@ function Navbar({ onOpenEmergency }: { onOpenEmergency: () => void }) {
           ) : (
             <Link
               to="/tai-khoan"
-              className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all hover:scale-105"
+              className="px-3.5 sm:px-4 py-1.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 hover:from-indigo-700 hover:to-pink-600 text-white text-xs font-black shadow-md shadow-purple-300/60 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5 ring-1 ring-white/50"
+              title="Đăng nhập dành cho Quản trị viên & Cô Nguyễn Thị Thùy Trang"
             >
-              Đăng nhập
+              <Lock className="w-3.5 h-3.5" />
+              <span>Đăng nhập (Quản trị & Cô Trang)</span>
             </Link>
           )}
         </div>
-
-        {/* Mobile Hamburger */}
-        <div className="lg:hidden flex items-center gap-2">
-          <button
-            onClick={onOpenEmergency}
-            className="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-xs font-bold"
-          >
-            SOS 111
-          </button>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
       </div>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-slate-100 bg-white/95 backdrop-blur-xl px-4 py-3 space-y-2 shadow-lg animate-in slide-in-from-top-2">
-          <div className="grid grid-cols-2 gap-1.5 text-xs font-medium text-slate-700">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`p-2 rounded-xl text-center ${
-                  isActive(link.to) ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-50 hover:bg-indigo-50'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
-            {currentUser ? (
-              <div className="flex items-center justify-between w-full">
-                <span className="text-xs font-medium text-slate-600 truncate">
-                  Xin chào: <strong>{displayName}</strong>
-                </span>
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="text-xs text-rose-600 font-bold flex items-center gap-1"
+      {/* Hàng 2: THANH TIÊU ĐỀ MENU TOÀN BỘ ĐƯỢC ĐƯA RA NGOÀI (CÁC NÚT ĐƯỢC NỔI LÊN, MÀU SẮC TƯƠI SÁNG) */}
+      <div className="border-t border-indigo-100/70 bg-gradient-to-r from-indigo-50/60 via-purple-50/40 to-pink-50/60 py-1.5">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none text-[11px] sm:text-xs font-semibold">
+            {navLinks.map((link) => {
+              const IconComp = link.icon;
+              const active = isActive(link.to);
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 ${
+                    active
+                      ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-md shadow-indigo-300/70 font-black -translate-y-0.5 ring-2 ring-indigo-200'
+                      : 'bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold'
+                  }`}
                 >
-                  <LogOut className="w-3.5 h-3.5" /> Thoát
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/tai-khoan"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold"
-              >
-                Đăng nhập tài khoản
-              </Link>
-            )}
+                  <IconComp className={`w-3.5 h-3.5 ${active ? 'text-white' : 'text-indigo-600'}`} />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>
     </nav>
   );
 }
 
 // ==========================================
-// 3. FOOTER & SOS POPUP MODAL
+// 3. FOOTER & SOS POPUP MODAL & TRA CỨU
 // ==========================================
 
 function Footer() {
+  const [lookupOpen, setLookupOpen] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [privacyModal, setPrivacyModal] = useState<string | null>(null);
+
+  // State tra cứu mã phiếu
+  const [searchCode, setSearchCode] = useState('');
+  const [searchResult, setSearchResult] = useState<any | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
+
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = searchCode.trim().toUpperCase();
+    if (!clean) return;
+    setIsSearching(true);
+    setSearched(true);
+    setSearchResult(null);
+
+    try {
+      // 1. Thử tìm trên Firestore
+      const q = query(collection(db, 'bullyingReports'));
+      const snap = await getDocs(q);
+      const found = snap.docs.find((d) => {
+        const data = d.data();
+        return (data.code && data.code.toUpperCase() === clean);
+      });
+
+      if (found) {
+        setSearchResult({ type: 'bully', ...found.data() });
+        setIsSearching(false);
+        return;
+      }
+    } catch {
+      // Bỏ qua lỗi Firestore, kiểm tra localStorage
+    }
+
+    // 2. Tìm trong localStorage
+    const localBully = JSON.parse(localStorage.getItem('demo_bully_reports') || '[]');
+    const localFound = localBully.find((b: any) => b.code && b.code.toUpperCase() === clean);
+    if (localFound) {
+      setSearchResult({ type: 'bully', ...localFound });
+    } else {
+      setSearchResult(null);
+    }
+    setIsSearching(false);
+  };
+
   return (
-    <footer className="mt-auto border-t border-indigo-100/60 bg-white/60 backdrop-blur-md py-8 text-slate-600 text-xs">
-      <div className="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-        <div>
-          <div className="flex items-center justify-center md:justify-start gap-2 mb-1">
-            <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
-            <span className="font-bold text-slate-800 text-sm">Hệ Thống Tham Vấn Tâm Lý Học Đường</span>
+    <>
+      <footer className="mt-auto border-t border-indigo-100/80 bg-white/75 backdrop-blur-2xl pt-12 pb-8 text-slate-600 text-xs shadow-inner">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          
+          {/* 1. KHỐI CAM KẾT & LỜI NHẮN NHỦ ĐẦU CHÂN TRANG (Callout Banner) */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 p-8 sm:p-10 text-white shadow-2xl shadow-indigo-300/40 mb-12">
+            {/* Họa tiết trang trí */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-pink-500/20 blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold tracking-wide mb-4 shadow-xs">
+                <ShieldCheck className="w-4 h-4 text-emerald-300" />
+                <span>Cam kết Trường học An toàn - Thân thiện - Tôn trọng</span>
+              </div>
+
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+                Mỗi học sinh đều là một điều kỳ diệu đáng được trân trọng
+              </h2>
+
+              <p className="text-xs sm:text-sm text-indigo-100 leading-relaxed font-normal mb-6 max-w-2xl">
+                Dù em đang gặp phải bất cứ khó khăn nào trong bài vở, áp lực điểm số, xích mích bạn bè hay chuyện gia đình, hãy nhớ rằng cánh cửa Phòng Tư vấn Trường TH&THCS Phước Hưng luôn rộng mở đón chào em.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  to="/chia-se"
+                  className="px-5 py-2.5 rounded-2xl bg-white text-indigo-700 hover:bg-indigo-50 font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4 text-indigo-600" />
+                  <span>Chia sẻ tâm sự ngay</span>
+                </Link>
+
+                <button
+                  onClick={() => {
+                    setLookupOpen(true);
+                    setSearched(false);
+                    setSearchResult(null);
+                  }}
+                  className="px-5 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition flex items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  <span>Tra cứu mã phiếu</span>
+                </button>
+              </div>
+            </div>
           </div>
-          <p className="text-slate-500">
-            Đồng hành cùng học sinh Tiểu học và THCS trên con đường trưởng thành bình an và hạnh phúc.
-          </p>
+
+          {/* 2. BỐ CỤC 4 CỘT CHÍNH CỦA CHÂN TRANG */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-10 border-b border-slate-200/80">
+            
+            {/* Cột 1: Cổng tư vấn tâm lý (4 cols) */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
+                  <Heart className="w-5 h-5 fill-white" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-sm leading-snug">
+                    Cổng tư vấn tâm lý
+                  </h3>
+                  <p className="text-xs font-extrabold text-indigo-700 tracking-wide">
+                    Trường TH&THCS Phước Hưng
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Môi trường lắng nghe an toàn, thân thiện và thấu cảm dành cho học sinh Tiểu học, THCS, quý phụ huynh và thầy cô giáo.
+              </p>
+
+              <div className="space-y-2 text-xs text-slate-600 pt-1">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Địa chỉ:</strong> Ấp Phước Khánh, Nhơn Hội, An Giang
+                  </span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Building2 className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <span>
+                    <strong>Phòng Tư vấn Tâm lý học đường:</strong> Gặp Cô Nguyễn Thị Thùy Trang (Phòng 692)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Cột 2: Thông tin liên hệ (3 cols) */}
+            <div className="lg:col-span-3 space-y-3.5">
+              <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-indigo-600" />
+                <span>Thông tin liên hệ</span>
+              </h4>
+
+              <div className="space-y-3 text-xs text-slate-600">
+                <div className="bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                  <span className="font-bold text-slate-800 block mb-0.5">Thời gian tiếp đón:</span>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Thứ Hai - Thứ Sáu:<br />
+                    <strong className="text-indigo-700">07:00 - 11:30</strong> | <strong className="text-indigo-700">13:30 - 17:00</strong>
+                  </p>
+                </div>
+
+                <div>
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5 mb-0.5">
+                    <Mail className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Hộp thư điện tử:</span>
+                  </span>
+                  <a
+                    href="mailto:c2phuochungap_trang@angiang.edu.vn"
+                    className="text-indigo-600 hover:underline font-mono text-[11px] break-all block"
+                  >
+                    c2phuochungap_trang@angiang.edu.vn
+                  </a>
+                </div>
+
+                <div>
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5 mb-0.5">
+                    <Inbox className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Hòm thư tâm sự trực tiếp:</span>
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Đặt trước cửa Phòng Tư vấn (Tầng 2)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Cột 3: Hướng dẫn & Quyền riêng tư (3 cols) */}
+            <div className="lg:col-span-3 space-y-3.5">
+              <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+                <Shield className="w-4 h-4 text-indigo-600" />
+                <span>Hướng dẫn & Quyền riêng tư</span>
+              </h4>
+
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <button
+                    onClick={() => {
+                      setLookupOpen(true);
+                      setSearched(false);
+                      setSearchResult(null);
+                    }}
+                    className="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+                  >
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>Tra cứu trạng thái phiếu tâm sự</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setPrivacyModal('anon_process')}
+                    className="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+                  >
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>Quy trình gửi thư ẩn danh an toàn</span>
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => setPrivacyModal('booking_rule')}
+                    className="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+                  >
+                    <span className="text-indigo-500 font-bold">•</span>
+                    <span>Quy định đặt lịch gặp thầy cô</span>
+                  </button>
+                </li>
+              </ul>
+
+              <div className="bg-amber-50/80 border border-amber-200/80 p-3 rounded-2xl text-[11px] text-amber-900 leading-relaxed">
+                <strong className="block font-bold text-amber-950 mb-1 flex items-center gap-1">
+                  <Lock className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Cam kết bảo mật:</span>
+                </strong>
+                Nội dung tư vấn được bảo mật. Khi có nguy cơ đe dọa an toàn tính mạng, nhà trường sẽ kích hoạt quy trình bảo vệ học sinh theo quy định.
+              </div>
+            </div>
+
+            {/* Cột 4: Kênh khẩn cấp & Cơ quan (2 cols) */}
+            <div className="lg:col-span-2 space-y-3">
+              <h4 className="font-black text-slate-800 text-xs uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
+                <PhoneCall className="w-4 h-4 text-rose-600" />
+                <span>Kênh khẩn cấp</span>
+              </h4>
+
+              {/* Tổng đài 111 */}
+              <a
+                href="tel:111"
+                className="block p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md hover:scale-102 transition group"
+              >
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="font-black text-base">Tổng đài Trẻ em 111</span>
+                  <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">24/7 Miễn phí</span>
+                </div>
+                <p className="text-[10px] text-rose-100 leading-tight">
+                  Đường dây nóng Quốc gia Bảo vệ Trẻ em
+                </p>
+              </a>
+
+              {/* Công an 113 */}
+              <a
+                href="tel:113"
+                className="block p-3 rounded-2xl bg-slate-900 text-white shadow-md hover:scale-102 transition group"
+              >
+                <div className="flex items-center justify-between mb-0.5">
+                  <span className="font-black text-base text-amber-400">Công an (Khẩn cấp) 113</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Khi gặp bạo lực hoặc nguy cơ đe dọa
+                </p>
+              </a>
+
+              {/* Nút Xem danh bạ khẩn cấp */}
+              <button
+                onClick={() => setDirectoryOpen(true)}
+                className="w-full py-2.5 px-3 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] shadow-2xs hover:border-indigo-300 transition text-center"
+              >
+                Xem danh bạ khẩn cấp nhà trường
+              </button>
+            </div>
+
+          </div>
+
+          {/* 3. DÒNG BẢN QUYỀN VÀ KHẨU HIỆU DƯỚI CÙNG */}
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-slate-500">
+            <div>
+              <p className="font-semibold text-slate-700">
+                © 2026 Cổng tư vấn tâm lý học đường – Trường TH&THCS Phước Hưng. Tất cả quyền được bảo lưu.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[11px]">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Vì một trường học an toàn, hạnh phúc và thân thiện</span>
+            </div>
+          </div>
+
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl text-rose-700 font-semibold flex items-center gap-2">
-            <Phone className="w-3.5 h-3.5" />
-            <span>Tổng đài Quốc gia 111 (Miễn phí 24/7)</span>
-          </div>
-          <div className="bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl text-emerald-700 font-semibold flex items-center gap-2">
-            <Check className="w-3.5 h-3.5" />
-            <span>Firebase hinh123-fd678</span>
+      </footer>
+
+      {/* MODAL 1: TRA CỨU MÃ PHIẾU TÂM SỰ / BÁO CÁO */}
+      {lookupOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                  <Search className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-base">Tra Cứu Mã Phiếu Bảo Mật</h3>
+                  <p className="text-xs text-slate-500">Nhập mã hồ sơ (ví dụ: SOS-BN-xxxxxx) để xem trạng thái</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setLookupOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleLookup} className="space-y-3 mb-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Nhập mã phiếu (VD: SOS-BN-123456)..."
+                  value={searchCode}
+                  onChange={(e) => setSearchCode(e.target.value)}
+                  required
+                  className="flex-1 text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-300 font-mono uppercase"
+                />
+                <button
+                  type="submit"
+                  disabled={isSearching}
+                  className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition"
+                >
+                  {isSearching ? 'Đang tra...' : 'Kiểm tra'}
+                </button>
+              </div>
+            </form>
+
+            {searched && (
+              <div className="pt-2">
+                {searchResult ? (
+                  <div className="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-2 text-xs animate-in zoom-in-95">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono font-black text-indigo-900 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
+                        {searchResult.code}
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800">
+                        {searchResult.status || 'Chờ tiếp nhận khẩn cấp'}
+                      </span>
+                    </div>
+                    <p className="text-slate-700">
+                      <strong>Hình thức:</strong> {searchResult.category || 'Phiếu hỗ trợ'}
+                    </p>
+                    <p className="text-slate-700">
+                      <strong>Lớp / Địa điểm:</strong> {searchResult.targetClass || 'Chưa rõ'}
+                    </p>
+                    <p className="text-slate-500 text-[11px]">
+                      <strong>Thời gian gửi:</strong> {searchResult.createdStr || 'Gần đây'}
+                    </p>
+                    <div className="pt-2 border-t border-indigo-200/60 text-[11px] text-emerald-800 font-medium">
+                      ✓ Hồ sơ đã được lưu trữ an toàn trong cơ sở dữ liệu trường TH&THCS Phước Hưng. Thầy cô đang xử lý bảo mật.
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center space-y-1">
+                    <p className="font-bold">Không tìm thấy mã phiếu "{searchCode}"</p>
+                    <p className="text-[11px] text-slate-500">
+                      Vui lòng kiểm tra lại chính xác từng ký tự mã phiếu được cấp sau khi gửi báo cáo hoặc liên hệ trực tiếp Cô Thùy Trang (Phòng 692).
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="mt-4 pt-3 border-t border-slate-100 text-center">
+              <button
+                onClick={() => setLookupOpen(false)}
+                className="text-xs text-slate-400 hover:text-slate-600 font-medium"
+              >
+                Đóng cửa sổ
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="text-center text-[11px] text-slate-400 mt-4 border-t border-slate-100 pt-3">
-        © 2026 Tâm Lý Học Đường • Tôn trọng quyền riêng tư và bảo mật thông tin học sinh 100%
-      </div>
-    </footer>
+      )}
+
+      {/* MODAL 2: DANH BẠ KHẨN CẤP NHÀ TRƯỜNG */}
+      {directoryOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+                  <PhoneCall className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-slate-800 text-base">Danh Bạ Khẩn Cấp Nhà Trường</h3>
+                  <p className="text-xs text-slate-500">TRƯỜNG TH&THCS PHƯỚC HƯNG (An Giang)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setDirectoryOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2.5 text-xs">
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-rose-900">Tổng đài Quốc gia Bảo vệ Trẻ em</div>
+                  <div className="text-[11px] text-rose-700">Miễn cước 24/7 - Hỗ trợ khẩn cấp toàn quốc</div>
+                </div>
+                <a href="tel:111" className="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs">
+                  Gọi 111
+                </a>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-indigo-900">Phòng Tư Vấn Tâm Lý - Cô Thùy Trang</div>
+                  <div className="text-[11px] text-indigo-700">Phòng 692 (Tầng 6 Nhà Đa Năng)</div>
+                </div>
+                <span className="font-mono font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
+                  Phòng 692
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-slate-900">Ban Giám Hiệu Trường TH&THCS Phước Hưng</div>
+                  <div className="text-[11px] text-slate-500">Ấp Phước Khánh, Nhơn Hội, An Giang</div>
+                </div>
+                <span className="text-[11px] font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+                  Văn phòng BGH
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                <div>
+                  <div className="font-bold text-amber-900">Công an Địa phương (Khẩn cấp)</div>
+                  <div className="text-[11px] text-amber-700">Can thiệp bạo lực & mất an ninh trật tự</div>
+                </div>
+                <a href="tel:113" className="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-extrabold text-xs">
+                  Gọi 113
+                </a>
+              </div>
+            </div>
+
+            <div className="mt-5 pt-3 border-t border-slate-100 text-center">
+              <button
+                onClick={() => setDirectoryOpen(false)}
+                className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700 transition"
+              >
+                Đã hiểu và đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: HƯỚNG DẪN & QUY ĐỊNH */}
+      {privacyModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 relative">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-slate-800 text-base">
+                {privacyModal === 'anon_process' ? 'Quy Trình Gửi Thư Ẩn Danh An Toàn' : 'Quy Định Đặt Lịch Gặp Thầy Cô'}
+              </h3>
+              <button
+                onClick={() => setPrivacyModal(null)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {privacyModal === 'anon_process' ? (
+              <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
+                <p>
+                  <strong>1. Không yêu cầu danh tính thực:</strong> Học sinh có thể gửi bài chia sẻ hoặc báo cáo bạo lực mà không cần điền tên, số điện thoại hay tài khoản cá nhân.
+                </p>
+                <p>
+                  <strong>2. Mã hồ sơ riêng tư:</strong> Sau khi gửi thành công, hệ thống tự động sinh một mã ngẫu nhiên (ví dụ: SOS-BN-xxxxxx). Em hãy lưu mã này lại để tra cứu tình trạng xử lý mà không sợ lộ danh tính.
+                </p>
+                <p>
+                  <strong>3. Tiếp nhận độc lập:</strong> Chỉ có chuyên viên tư vấn tâm lý (Cô Thùy Trang) và Ban Giám Hiệu được quyền truy cập thông tin để bảo vệ em.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
+                <p>
+                  <strong>1. Khung giờ gặp trực tiếp:</strong> Từ Thứ Hai đến Thứ Sáu (07:00 - 11:30 và 13:30 - 17:00) tại Phòng 692.
+                </p>
+                <p>
+                  <strong>2. Chủ động chọn hình thức:</strong> Em có thể chọn gặp trực tiếp tại phòng tư vấn, trò chuyện trực tuyến bảo mật hoặc gửi thư điện tử.
+                </p>
+                <p>
+                  <strong>3. Tôn trọng và bảo mật:</strong> Mọi trao đổi giữa em và cô Thùy Trang đều hoàn toàn riêng tư. Thầy cô không đánh giá hay trách phạt em vì bất kỳ cảm xúc nào.
+                </p>
+              </div>
+            )}
+
+            <div className="mt-5 pt-3 border-t border-slate-100 text-center">
+              <button
+                onClick={() => setPrivacyModal(null)}
+                className="w-full py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 font-bold text-xs text-white transition"
+              >
+                Đóng hướng dẫn
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -488,7 +896,7 @@ function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-indigo-200/60 text-indigo-700 text-xs font-bold shadow-xs mb-6">
           <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Hệ thống hỗ trợ tâm lý trường học 4.0 • Dự án Firebase hinh123-fd678</span>
+          <span>CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
         </div>
 
         {/* Title & Subtitle */}
@@ -500,22 +908,22 @@ function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
         </h1>
 
         <p className="text-slate-600 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          Không gian an toàn, ấm áp và thấu cảm dành riêng cho các bạn học sinh. Nơi mọi băn khoăn về áp lực thi cử,
-          tình bạn, cảm xúc cá nhân hay bạo lực học đường đều được lắng nghe và bảo mật trọn vẹn.
+          Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG. Nơi mọi băn khoăn về áp lực thi cử,
+          tình bạn và cảm xúc cá nhân luôn được lắng nghe, bảo vệ an toàn và bảo mật trọn vẹn.
         </p>
 
-        {/* 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-16">
+        {/* 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
           {/* Nút 1: Góc Chia Sẻ Tâm Tư */}
           <Link
             to="/chia-se"
-            className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-gradient-to-b from-indigo-500 to-indigo-700 text-white shadow-xl shadow-indigo-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-300/70 hover:shadow-2xl hover:shadow-purple-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <MessageSquare className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-purple-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+              <MessageSquare className="w-7 h-7 text-white drop-shadow" />
             </div>
-            <span className="text-base sm:text-lg font-black tracking-wide">Góc Chia Sẻ Tâm Tư</span>
-            <span className="text-xs text-indigo-100 mt-1 font-medium text-center">
+            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Góc Chia Sẻ Tâm Tư</span>
+            <span className="text-xs text-purple-100 mt-1.5 font-medium text-center">
               Tâm sự ẩn danh, trải lòng & tìm sự đồng cảm
             </span>
           </Link>
@@ -523,82 +931,82 @@ function Home({ onOpenEmergency }: { onOpenEmergency: () => void }) {
           {/* Nút 2: Trò Chuyện Cùng Trợ Lý AI */}
           <Link
             to="/tro-ly-ai"
-            className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-gradient-to-b from-sky-500 to-cyan-600 text-white shadow-xl shadow-sky-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all overflow-hidden"
+            className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 text-white shadow-xl shadow-sky-300/70 hover:shadow-2xl hover:shadow-sky-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <Bot className="w-7 h-7 text-white" />
+            <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-sky-900/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform">
+              <Bot className="w-7 h-7 text-white drop-shadow" />
             </div>
-            <span className="text-base sm:text-lg font-black tracking-wide">Trò Chuyện Cùng Trợ Lý AI</span>
-            <span className="text-xs text-sky-100 mt-1 font-medium text-center">
+            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Trò Chuyện Cùng Trợ Lý AI</span>
+            <span className="text-xs text-sky-100 mt-1.5 font-medium text-center">
               Tư vấn 24/7, xoa dịu lo âu & giải tỏa áp lực
             </span>
           </Link>
 
-          {/* Nút 3: SOS Khẩn Cấp 111 */}
-          <button
-            onClick={onOpenEmergency}
-            className="group relative flex flex-col items-center justify-center p-6 rounded-3xl bg-gradient-to-b from-rose-500 to-red-600 text-white shadow-xl shadow-rose-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all overflow-hidden"
+          {/* Nút 3: Kỹ Năng Sống Học Đường (thay thế nút SOS 111 phía trên vì ở dưới đã có nút tròn nổi) */}
+          <Link
+            to="/ky-nang-song"
+            className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
           >
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <PhoneCall className="w-7 h-7 text-white animate-bounce" />
+            <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-teal-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+              <Sparkles className="w-7 h-7 text-white drop-shadow" />
             </div>
-            <span className="text-base sm:text-lg font-black tracking-wide">SOS Khẩn Cấp 111</span>
-            <span className="text-xs text-rose-100 mt-1 font-medium text-center">
-              Tổng đài Quốc gia Bảo vệ Trẻ em miễn phí
+            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Kỹ Năng Sống Học Đường</span>
+            <span className="text-xs text-emerald-100 mt-1.5 font-medium text-center">
+              Cẩm nang ứng phó áp lực, tình bạn & cảm xúc
             </span>
-          </button>
+          </Link>
         </div>
 
-        {/* 4 Feature Cards (Glassmorphism) */}
+        {/* 4 Feature Cards (Glassmorphism & Raised 3D Styling, Màu Sắc Tươi Sáng) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
           <div
             onClick={() => navigate('/cam-xuc')}
-            className="cursor-pointer p-5 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100"
           >
-            <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
-              <Smile className="w-5 h-5" />
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
+              <Smile className="w-5 h-5 fill-white/20" />
             </div>
-            <h3 className="font-extrabold text-slate-800 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-black text-amber-950 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
+            <p className="text-xs text-amber-900/70 leading-relaxed">
               Điểm danh tâm trạng mỗi ngày qua các biểu tượng cảm xúc, theo dõi biểu đồ tâm lý học đường.
             </p>
           </div>
 
           <div
             onClick={() => navigate('/chong-bat-nat')}
-            className="cursor-pointer p-5 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100"
           >
-            <div className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
               <ShieldAlert className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-slate-800 text-sm mb-1">Chống Bắt Nạt Học Đường</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Gửi báo cáo bạo lực học đường an toàn, ẩn danh 100%, bảo vệ học sinh ngay lập tức.
+            <h3 className="font-black text-rose-950 text-sm mb-1">Phòng Chống Bắt Nạt</h3>
+            <p className="text-xs text-rose-900/70 leading-relaxed">
+              Gửi báo cáo bạo lực học đường an toàn, ẩn danh 100%, bảo vệ học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG ngay lập tức.
             </p>
           </div>
 
           <div
             onClick={() => navigate('/dang-ky-tu-van')}
-            className="cursor-pointer p-5 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-teal-50/90 to-emerald-50/80 backdrop-blur-xl border border-teal-200/80 shadow-md shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-teal-100"
           >
-            <div className="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center mb-3 shadow-md shadow-teal-300">
               <Calendar className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-slate-800 text-sm mb-1">Đặt Lịch Chuyên Gia</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Gặp Thầy Nguyễn Tuấn Anh (THCS) hoặc Cô Nguyễn Thị Thùy Trang (Tiểu học) tại Phòng 204.
+            <h3 className="font-black text-teal-950 text-sm mb-1">Đặt Lịch Giáo Viên</h3>
+            <p className="text-xs text-teal-900/70 leading-relaxed">
+              Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692 (TRƯỜNG TH&THCS PHƯỚC HƯNG).
             </p>
           </div>
 
           <div
-            onClick={() => navigate('/thu-vien')}
-            className="cursor-pointer p-5 rounded-3xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all"
+            onClick={() => navigate('/ky-nang-song')}
+            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100"
           >
-            <div className="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
               <BookOpen className="w-5 h-5" />
             </div>
-            <h3 className="font-extrabold text-slate-800 text-sm mb-1">Thư Viện Kỹ Năng</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <h3 className="font-black text-purple-950 text-sm mb-1">Cẩm Nang Kỹ Năng Sống</h3>
+            <p className="text-xs text-purple-900/70 leading-relaxed">
               Kho cẩm nang kiểm soát lo âu, bí quyết giải tỏa áp lực thi cử và xây dựng tình bạn lành mạnh.
             </p>
           </div>
@@ -901,11 +1309,11 @@ function AIChatPage() {
     const lower = userMsg.toLowerCase();
 
     if (lower.includes('áp lực') || lower.includes('thi cử') || lower.includes('điểm')) {
-      return `Thầy cô hiểu cảm giác này của em rất nhiều. Áp lực thi cử và kỳ vọng điểm số là gánh nặng lớn với hầu hết các bạn học sinh.\n\n🌸 Lời khuyên dành cho em lúc này:\n1. Điểm số chỉ phản ánh kết quả một bài thi tại thời điểm đó, KHÔNG định nghĩa giá trị con người em.\n2. Chia nhỏ mục tiêu học: Thay vì ôn 5 tiếng liên tục, hãy học 25 phút rồi nghỉ ngơi 5 phút (kỹ thuật Pomodoro).\n3. Tối nay, hãy cho bản thân ngủ đủ giấc. Não bộ mệt mỏi sẽ khó ghi nhớ bài hơn.\n\nEm đã rất nỗ lực rồi. Nếu áp lực quá lớn, em có thể đặt lịch gặp Thầy Nguyễn Tuấn Anh tại phòng tư vấn để cùng gỡ rối nhé!`;
+      return `Thầy cô hiểu cảm giác này của em rất nhiều. Áp lực thi cử và kỳ vọng điểm số là gánh nặng lớn với hầu hết các bạn học sinh.\n\n🌸 Lời khuyên dành cho em lúc này:\n1. Điểm số chỉ phản ánh kết quả một bài thi tại thời điểm đó, KHÔNG định nghĩa giá trị con người em.\n2. Chia nhỏ mục tiêu học: Thay vì ôn 5 tiếng liên tục, hãy học 25 phút rồi nghỉ ngơi 5 phút (kỹ thuật Pomodoro).\n3. Tối nay, hãy cho bản thân ngủ đủ giấc. Não bộ mệt mỏi sẽ khó ghi nhớ bài hơn.\n\nEm đã rất nỗ lực rồi. Nếu áp lực quá lớn, em có thể đặt lịch giáo viên gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692 TRƯỜNG TH&THCS PHƯỚC HƯNG nhé!`;
     }
 
     if (lower.includes('bạn bè') || lower.includes('xa lánh') || lower.includes('tẩy chay') || lower.includes('bắt nạt')) {
-      return `Cảm ơn em đã dũng cảm chia sẻ điều này. Bị bạn bè xa lánh là một trải nghiệm rất tổn thương và cô đơn. Nhưng em hãy nhớ: LỖI HOÀN TOÀN KHÔNG PHẢI Ở EM!\n\n🛡️ Những việc em nên làm ngay:\n1. Không tự trách mình hay cố gắng làm hài lòng những người đối xử tệ với em.\n2. Tìm kiếm sự đồng hành từ ít nhất một người bạn tử tế khác hoặc anh chị, người thân.\n3. Nếu tình trạng này có dấu hiệu bạo lực tinh thần hoặc xúc phạm, em hãy gửi ngay báo cáo tại mục 'Chống Bắt Nạt' trên trang này để thầy cô can thiệp bảo vệ em an toàn nhé.`;
+      return `Cảm ơn em đã dũng cảm chia sẻ điều này. Bị bạn bè xa lánh là một trải nghiệm rất tổn thương và cô đơn. Nhưng em hãy nhớ: LỖI HOÀN TOÀN KHÔNG PHẢI Ở EM!\n\n🛡️ Những việc em nên làm ngay:\n1. Không tự trách mình hay cố gắng làm hài lòng những người đối xử tệ với em.\n2. Tìm kiếm sự đồng hành từ ít nhất một người bạn tử tế khác hoặc anh chị, người thân.\n3. Nếu tình trạng này có dấu hiệu bạo lực tinh thần hoặc xúc phạm, em hãy gửi ngay báo cáo tại mục 'Phòng Chống Bắt Nạt Học Đường' trên trang này để thầy cô TRƯỜNG TH&THCS PHƯỚC HƯNG can thiệp bảo vệ em an toàn nhé.`;
     }
 
     if (lower.includes('hít thở') || lower.includes('4-7-8') || lower.includes('bình tĩnh')) {
@@ -916,7 +1324,7 @@ function AIChatPage() {
       return `Bất đồng quan điểm với bố mẹ là chuyện rất phổ biến ở lứa tuổi học trò, vì khoảng cách thế hệ và cách thể hiện sự quan tâm khác nhau.\n\n💡 Một vài gợi ý nhỏ:\n- Chọn thời điểm cả nhà vui vẻ, không căng thẳng để nói chuyện.\n- Dùng mẫu câu 'Con cảm thấy... khi...' thay vì 'Bố mẹ luôn luôn...'.\n- Nếu khó nói trực tiếp, một mẩu giấy nhớ hoặc tin nhắn chân thành cũng là cách tuyệt vời để bố mẹ hiểu lòng em hơn.`;
     }
 
-    return `Thầy cô luôn lắng nghe em. Cảm ơn em vì đã tin tưởng và mở lòng chia sẻ. Những cảm xúc em đang trải qua đều rất tự nhiên và đáng được trân trọng.\n\nEm hãy hít một hơi thật sâu. Có điều gì cụ thể hơn em muốn kể thêm với thầy cô không? Em cũng có thể sử dụng tính năng 'Đặt lịch tư vấn' để gặp trực tiếp chuyên gia tâm lý học đường tại trường nhé!`;
+    return `Thầy cô TRƯỜNG TH&THCS PHƯỚC HƯNG luôn lắng nghe em. Cảm ơn em vì đã tin tưởng và mở lòng chia sẻ. Những cảm xúc em đang trải qua đều rất tự nhiên và đáng được trân trọng.\n\nEm hãy hít một hơi thật sâu. Em có thể sử dụng tính năng 'Đặt lịch giáo viên' để gặp trực tiếp Cô Nguyễn Thị Thùy Trang tại Phòng 692 nhé!`;
   };
 
   const handleSendMessage = (textToSend?: string) => {
@@ -1050,28 +1458,17 @@ function AIChatPage() {
 }
 
 // ==========================================
-// 7. TÍNH NĂNG 3: GÓC CHIA SẺ & CHỐNG BẮT NẠT
+// 7. TÍNH NĂNG 3: GÓC CHIA SẺ & PHÒNG CHỐNG BẮT NẠT
 // ==========================================
 
+// Trang 1: Góc Chia Sẻ Tâm Tư (Tách riêng biệt, không bị trùng lặp)
 function ShareCornerPage() {
   const { currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'share' | 'bully'>('share');
-
-  // State cho Góc chia sẻ
   const [posts, setPosts] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isAnonPost, setIsAnonPost] = useState(true);
   const [loadingPost, setLoadingPost] = useState(false);
-
-  // State cho Hòm thư Chống bắt nạt
-  const [bullyCategory, setBullyCategory] = useState('Bạo lực ngôn từ, lăng mạ');
-  const [targetClass, setTargetClass] = useState('');
-  const [bullyDetail, setBullyDetail] = useState('');
-  const [urgency, setUrgency] = useState('Khẩn cấp');
-  const [contactInfo, setContactInfo] = useState('');
-  const [reportResult, setReportResult] = useState<{ code: string } | null>(null);
-  const [submittingBully, setSubmittingBully] = useState(false);
 
   const fetchPosts = async () => {
     try {
@@ -1120,25 +1517,165 @@ function ShareCornerPage() {
   };
 
   const handleSavePost = async (post: any) => {
-    if (!currentUser) {
-      alert('Vui lòng đăng nhập để lưu bài viết vào mục "Đã lưu" cá nhân!');
-      return;
-    }
     try {
-      const savedRef = doc(db, 'users', currentUser.uid, 'savedPosts', post.id || 'p_' + Date.now());
-      await setDoc(savedRef, {
-        postId: post.id,
-        title: post.title,
-        content: post.content,
-        author: post.author,
-        savedAt: serverTimestamp()
-      });
-      alert('Đã lưu bài viết vào danh sách "Đã lưu" trên Firestore!');
-    } catch (e) {
-      console.error('Lỗi lưu bài:', e);
-      alert('Đã lưu bài viết vào phiên làm việc!');
+      const savedItems = JSON.parse(localStorage.getItem('tamly_saved_posts') || '[]');
+      const exists = savedItems.some((item: any) => item.id === post.id);
+      if (!exists) {
+        savedItems.unshift({
+          id: post.id || 'p_' + Date.now(),
+          title: post.title,
+          content: post.content,
+          author: post.author || 'Tâm sự học sinh',
+          savedAt: new Date().toLocaleDateString('vi-VN')
+        });
+        localStorage.setItem('tamly_saved_posts', JSON.stringify(savedItems));
+      }
+      if (currentUser) {
+        try {
+          const savedRef = doc(db, 'users', currentUser.uid, 'savedPosts', post.id || 'p_' + Date.now());
+          await setDoc(savedRef, {
+            postId: post.id,
+            title: post.title,
+            content: post.content,
+            author: post.author,
+            savedAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.warn('Lưu Firestore phụ:', e);
+        }
+      }
+      alert('Đã lưu bài viết vào mục "Đã lưu" của em thành công!');
+    } catch {
+      alert('Đã lưu bài viết thành công!');
     }
   };
+
+  return (
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      {/* Tiêu đề trang Góc Chia Sẻ */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold shadow-2xs mb-3">
+          <MessageSquare className="w-4 h-4 text-indigo-600" />
+          <span>GÓC CHIA SẺ TÂM TƯ • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+          Góc Chia Sẻ & Trải Lòng Tuổi Học Trò
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto mt-2 leading-relaxed">
+          Nơi các em học sinh có thể gửi gắm tâm sự, giải tỏa áp lực thi cử và tìm kiếm sự đồng cảm nhân văn hoàn toàn ẩn danh.
+        </p>
+      </div>
+
+      <div className="space-y-6">
+        {/* Form tạo bài viết */}
+        <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-7 rounded-3xl shadow-lg">
+          <h2 className="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-indigo-500" />
+            <span>Gửi gắm tâm sự cùng bạn bè học đường</span>
+          </h2>
+          <p className="text-xs text-slate-500 mb-4">
+            Mọi chia sẻ đều được kiểm duyệt nhân văn. Em có thể chọn đăng ẩn danh hoàn toàn để thoải mái trút bỏ gánh nặng.
+          </p>
+
+          <form onSubmit={handleCreatePost} className="space-y-3.5">
+            <input
+              type="text"
+              placeholder="Tiêu đề tâm sự (ví dụ: Áp lực kỳ thi vào lớp 10, chuyện hiểu lầm với bạn thân...)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+              className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+            />
+            <textarea
+              placeholder="Nội dung em muốn chia sẻ... Hãy thoải mái trút bầu tâm sự nhé!"
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={4}
+              required
+              className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
+            />
+            <div className="flex items-center justify-between pt-1">
+              <label className="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isAnonPost}
+                  onChange={(e) => setIsAnonPost(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600 accent-indigo-600"
+                />
+                <span>Đăng với tên ẩn danh</span>
+              </label>
+
+              <button
+                type="submit"
+                disabled={loadingPost}
+                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:scale-105 active:scale-95 transition"
+              >
+                {loadingPost ? 'Đang gửi...' : 'Đăng Tâm Sự'}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* Danh sách bài đăng */}
+        <div className="space-y-4">
+          <h3 className="font-extrabold text-slate-800 text-sm flex items-center justify-between">
+            <span>Những câu chuyện đang được sẻ chia</span>
+            <span className="text-xs text-slate-400 font-normal">{posts.length} bài viết</span>
+          </h3>
+
+          {posts.map((post) => (
+            <div
+              key={post.id}
+              className="bg-white/80 backdrop-blur-xl border border-white/80 p-5 rounded-3xl shadow-md hover:shadow-lg transition space-y-3"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h4 className="font-black text-base text-slate-800 leading-snug">{post.title}</h4>
+                  <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
+                    <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
+                      {post.author}
+                    </span>
+                    <span>• {post.createdStr || 'Gần đây'}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleSavePost(post)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition shrink-0"
+                  title="Lưu bài viết"
+                >
+                  <Bookmark className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/60 p-3.5 rounded-2xl">
+                {post.content}
+              </p>
+
+              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
+                <div className="flex items-center gap-1.5 text-rose-500 font-bold">
+                  <Heart className="w-3.5 h-3.5 fill-rose-500" />
+                  <span>Đồng cảm cùng em</span>
+                </div>
+                <span className="text-[11px] text-slate-400">Được bảo vệ bởi quy chuẩn văn minh học đường</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Trang 2: Phòng Chống Bắt Nạt Học Đường (Trang chuyên biệt độc lập)
+function BullyReportPage() {
+  const [bullyCategory, setBullyCategory] = useState('Bạo lực ngôn từ, lăng mạ');
+  const [targetClass, setTargetClass] = useState('');
+  const [bullyDetail, setBullyDetail] = useState('');
+  const [urgency, setUrgency] = useState('Khẩn cấp');
+  const [contactInfo, setContactInfo] = useState('');
+  const [reportResult, setReportResult] = useState<{ code: string } | null>(null);
+  const [submittingBully, setSubmittingBully] = useState(false);
 
   const handleSubmitBullyReport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1166,7 +1703,6 @@ function ShareCornerPage() {
       setTargetClass('');
       setContactInfo('');
     } catch {
-      // Local storage fallback
       const stored = JSON.parse(localStorage.getItem('demo_bully_reports') || '[]');
       stored.unshift(reportData);
       localStorage.setItem('demo_bully_reports', JSON.stringify(stored));
@@ -1180,272 +1716,156 @@ function ShareCornerPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Tab Switcher */}
-      <div className="flex justify-center mb-8">
-        <div className="p-1.5 rounded-2xl bg-white/80 backdrop-blur-md border border-white/80 shadow-md inline-flex gap-2">
-          <button
-            onClick={() => setActiveTab('share')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'share'
-                ? 'bg-indigo-600 text-white shadow-xs scale-102'
-                : 'text-slate-600 hover:text-indigo-600 hover:bg-slate-50'
-            }`}
-          >
-            <MessageSquare className="w-4 h-4" />
-            <span>Góc Chia Sẻ Tâm Tư</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('bully')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === 'bully'
-                ? 'bg-rose-600 text-white shadow-xs scale-102'
-                : 'text-slate-600 hover:text-rose-600 hover:bg-slate-50'
-            }`}
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>Hòm Thư Chống Bắt Nạt</span>
-          </button>
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      {/* Tiêu đề trang Phòng Chống Bắt Nạt Học Đường */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold shadow-2xs mb-3">
+          <ShieldAlert className="w-4 h-4 text-rose-600" />
+          <span>PHÒNG CHỐNG BẮT NẠT HỌC ĐƯỜNG • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
         </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
+          Hòm Thư Phòng Chống Bắt Nạt Học Đường
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto mt-2 leading-relaxed">
+          Bảo mật danh tính 100% • Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692) tiếp nhận và can thiệp bảo vệ khẩn cấp.
+        </p>
       </div>
 
-      {/* TAB 1: GÓC CHIA SẺ TÂM TƯ */}
-      {activeTab === 'share' && (
-        <div className="space-y-6">
-          {/* Form tạo bài */}
-          <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 rounded-3xl shadow-lg">
-            <h2 className="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-indigo-500" />
-              <span>Gửi gắm tâm sự cùng bạn bè học đường</span>
-            </h2>
-            <p className="text-xs text-slate-500 mb-4">
-              Mọi chia sẻ đều được kiểm duyệt nhân văn. Em có thể đăng ẩn danh hoàn toàn để trút bỏ gánh nặng.
-            </p>
+      <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl">
+        <div className="max-w-2xl mx-auto">
+          {reportResult ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center space-y-4 animate-in zoom-in-95">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-black text-emerald-900">Báo Cáo Đã Được Tiếp Nhận An Toàn!</h3>
+              <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed max-w-md mx-auto">
+                Thầy cô TRƯỜNG TH&THCS PHƯỚC HƯNG đã nhận được thông tin và sẽ bí mật xác minh để can thiệp bảo vệ an toàn cho em/bạn học.
+              </p>
+              <div className="bg-white p-3.5 rounded-2xl border border-emerald-300 inline-block font-mono text-sm font-extrabold text-emerald-950">
+                Mã hồ sơ bảo mật: <span className="text-rose-600">{reportResult.code}</span>
+              </div>
+              <div>
+                <button
+                  onClick={() => setReportResult(null)}
+                  className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition"
+                >
+                  Gửi báo cáo khác
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmitBullyReport} className="space-y-4">
+              <div className="bg-rose-50/80 border border-rose-200 p-4 rounded-2xl text-xs text-rose-800 leading-relaxed flex items-start gap-3">
+                <Lock className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                <div>
+                  <strong className="block font-black text-rose-900 mb-0.5">CAM KẾT BẢO MẬT TUYỆT ĐỐI 100%:</strong>
+                  <span>
+                    Danh tính của em được giữ bí mật nghiêm ngặt. Thầy cô tuyệt đối không tiết lộ nguồn báo cáo để đảm bảo em luôn an toàn và không bị ảnh hưởng.
+                  </span>
+                </div>
+              </div>
 
-            <form onSubmit={handleCreatePost} className="space-y-3.5">
-              <input
-                type="text"
-                placeholder="Tiêu đề tâm sự (ví dụ: Áp lực kỳ thi vào lớp 10, chuyện hiểu lầm với bạn thân...)"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-              />
-              <textarea
-                placeholder="Nội dung em muốn chia sẻ... Hãy thoải mái trút bầu tâm sự nhé!"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={4}
-                required
-                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-              />
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isAnonPost}
-                    onChange={(e) => setIsAnonPost(e.target.checked)}
-                    className="w-4 h-4 rounded text-indigo-600 accent-indigo-600"
-                  />
-                  <span>Đăng với tên ẩn danh</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    1. Hình thức vi phạm / bắt nạt:
+                  </label>
+                  <select
+                    value={bullyCategory}
+                    onChange={(e) => setBullyCategory(e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
+                  >
+                    <option value="Bạo lực ngôn từ, lăng mạ">Bạo lực ngôn từ, lăng mạ, xúc phạm</option>
+                    <option value="Bắt nạt thể xác, đe dọa đánh nhau">Bắt nạt thể xác, đe dọa đánh nhau</option>
+                    <option value="Bắt nạt trên mạng (Cyberbullying)">Bắt nạt trên mạng (Cyberbullying, bôi nhọ)</option>
+                    <option value="Cô lập, tẩy chay có tổ chức">Cô lập, ép buộc, tẩy chay có tổ chức</option>
+                    <option value="Trấn lột tiền bạc, đồ dùng">Trấn lột tiền bạc, đồ dùng học tập</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                    2. Mức độ khẩn cấp:
+                  </label>
+                  <select
+                    value={urgency}
+                    onChange={(e) => setUrgency(e.target.value)}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
+                  >
+                    <option value="Khẩn cấp">Khẩn cấp (Cần can thiệp trong ngày)</option>
+                    <option value="Nghiêm trọng">Nghiêm trọng (Xảy ra liên tục nhiều ngày)</option>
+                    <option value="Cảnh báo sớm">Cảnh báo sớm (Có nguy cơ bùng phát)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  3. Lớp học hoặc địa điểm xảy ra sự việc:
                 </label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Lớp 8A3, khu vực hành lang tầng 3 hoặc sân bóng rổ..."
+                  value={targetClass}
+                  onChange={(e) => setTargetClass(e.target.value)}
+                  required
+                  className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
+                />
+              </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  4. Mô tả chi tiết sự việc:
+                </label>
+                <textarea
+                  placeholder="Mô tả cụ thể chuyện gì đã xảy ra, ai là người bị bắt nạt, hành vi bắt nạt như thế nào..."
+                  value={bullyDetail}
+                  onChange={(e) => setBullyDetail(e.target.value)}
+                  rows={4}
+                  required
+                  className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                  5. Thông tin liên hệ của em (Tùy chọn - để trống để ẩn danh 100%):
+                </label>
+                <input
+                  type="text"
+                  placeholder="Số điện thoại hoặc email (nếu muốn cô Thùy Trang phản hồi riêng cho em)..."
+                  value={contactInfo}
+                  onChange={(e) => setContactInfo(e.target.value)}
+                  className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
+                />
+              </div>
+
+              <div className="pt-2">
                 <button
                   type="submit"
-                  disabled={loadingPost}
-                  className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:scale-105 active:scale-95 transition"
+                  disabled={submittingBully}
+                  className="w-full py-3.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-rose-200 hover:scale-101 active:scale-98 transition flex items-center justify-center gap-2"
                 >
-                  {loadingPost ? 'Đang gửi...' : 'Đăng Tâm Sự'}
+                  <ShieldAlert className="w-5 h-5" />
+                  <span>{submittingBully ? 'Đang gửi hồ sơ...' : 'GỬI BÁO CÁO BẢO MẬT NGAY'}</span>
                 </button>
               </div>
             </form>
-          </div>
+          )}
 
-          {/* Danh sách bài đăng */}
-          <div className="space-y-4">
-            <h3 className="font-extrabold text-slate-800 text-sm flex items-center justify-between">
-              <span>Những câu chuyện đang được sẻ chia</span>
-              <span className="text-xs text-slate-400 font-normal">{posts.length} bài viết</span>
-            </h3>
-
-            {posts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white/80 backdrop-blur-xl border border-white/80 p-5 rounded-3xl shadow-md hover:shadow-lg transition space-y-3"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h4 className="font-black text-base text-slate-800 leading-snug">{post.title}</h4>
-                    <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
-                      <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                        {post.author}
-                      </span>
-                      <span>• {post.createdStr || 'Gần đây'}</span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleSavePost(post)}
-                    className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition shrink-0"
-                    title="Lưu bài viết"
-                  >
-                    <Bookmark className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/60 p-3.5 rounded-2xl">
-                  {post.content}
-                </p>
-
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                  <div className="flex items-center gap-1.5 text-rose-500 font-bold">
-                    <Heart className="w-3.5 h-3.5 fill-rose-500" />
-                    <span>Đồng cảm cùng em</span>
-                  </div>
-                  <span className="text-[11px] text-slate-400">Được bảo vệ bởi quy chuẩn văn minh học đường</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: HÒM THƯ CHỐNG BẮT NẠT HỌC ĐƯỜNG */}
-      {activeTab === 'bully' && (
-        <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl">
-          <div className="max-w-2xl mx-auto">
-            <div className="flex items-center gap-3 mb-4 text-rose-600">
-              <div className="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center">
-                <ShieldAlert className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-rose-700">Báo Cáo Bạo Lực Học Đường Bảo Mật</h2>
-                <p className="text-xs text-slate-500">
-                  Thông tin được chuyển trực tiếp tới Ban Giám Hiệu & Chuyên gia tư vấn tâm lý trường học
-                </p>
-              </div>
+          {/* Hướng dẫn an toàn khẩn cấp */}
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-700">Trường hợp khẩn cấp nguy hiểm:</span>
+              <span className="text-rose-600 font-extrabold">Gọi ngay Tổng đài Quốc gia 111</span>
             </div>
-
-            {reportResult ? (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-6 text-center space-y-4 animate-in zoom-in-95">
-                <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
-                </div>
-                <h3 className="text-lg font-black text-emerald-900">Báo Cáo Đã Được Tiếp Nhận An Toàn!</h3>
-                <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed max-w-md mx-auto">
-                  Thầy cô đã nhận được thông tin và sẽ bí mật xác minh để can thiệp bảo vệ an toàn cho em/bạn học.
-                </p>
-                <div className="bg-white p-3.5 rounded-2xl border border-emerald-300 inline-block font-mono text-sm font-extrabold text-emerald-950">
-                  Mã hồ sơ bảo mật: <span className="text-rose-600">{reportResult.code}</span>
-                </div>
-                <div>
-                  <button
-                    onClick={() => setReportResult(null)}
-                    className="px-5 py-2 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition"
-                  >
-                    Gửi báo cáo khác
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitBullyReport} className="space-y-4">
-                <div className="bg-rose-50/70 border border-rose-200 p-3.5 rounded-2xl text-xs text-rose-800 leading-relaxed flex items-start gap-2.5">
-                  <Lock className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>CAM KẾT BẢO MẬT:</strong> Danh tính của em được bảo vệ tuyệt đối. Thầy cô tuyệt đối không tiết lộ nguồn báo cáo để tránh bất kỳ phiền phức hay nguy hiểm nào.
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      1. Hình thức bạo lực / bắt nạt:
-                    </label>
-                    <select
-                      value={bullyCategory}
-                      onChange={(e) => setBullyCategory(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
-                    >
-                      <option value="Bạo lực ngôn từ, lăng mạ">Bạo lực ngôn từ, lăng mạ, xúc phạm</option>
-                      <option value="Bắt nạt thể xác, đe dọa đánh nhau">Bắt nạt thể xác, đe dọa đánh nhau</option>
-                      <option value="Bắt nạt trên mạng (Cyberbullying)">Bắt nạt trên mạng (Cyberbullying, lập nhóm bôi nhọ)</option>
-                      <option value="Cô lập, tẩy chay có tổ chức">Cô lập, ép buộc, tẩy chay có tổ chức</option>
-                      <option value="Trấn lột tiền bạc, đồ dùng">Trấn lột tiền bạc, đồ dùng học tập</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                      2. Mức độ khẩn cấp:
-                    </label>
-                    <select
-                      value={urgency}
-                      onChange={(e) => setUrgency(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
-                    >
-                      <option value="Khẩn cấp">Khẩn cấp (Cần can thiệp trong ngày)</option>
-                      <option value="Nghiêm trọng">Nghiêm trọng (Xảy ra liên tục nhiều ngày)</option>
-                      <option value="Cảnh báo sớm">Cảnh báo sớm (Có nguy cơ bùng phát)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    3. Lớp học hoặc địa điểm xảy ra sự việc:
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Lớp 8A3, khu vực hành lang tầng 3 hoặc sân bóng rổ..."
-                    value={targetClass}
-                    onChange={(e) => setTargetClass(e.target.value)}
-                    required
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    4. Mô tả chi tiết sự việc:
-                  </label>
-                  <textarea
-                    placeholder="Mô tả cụ thể chuyện gì đã xảy ra, ai là người bị bắt nạt, hành vi bắt nạt như thế nào..."
-                    value={bullyDetail}
-                    onChange={(e) => setBullyDetail(e.target.value)}
-                    rows={4}
-                    required
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                    5. Thông tin liên hệ của em (Tùy chọn - có thể để trống để ẩn danh 100%):
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Số điện thoại hoặc email (nếu muốn thầy cô phản hồi riêng cho em)..."
-                    value={contactInfo}
-                    onChange={(e) => setContactInfo(e.target.value)}
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-rose-300"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={submittingBully}
-                    className="w-full py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-rose-200 hover:scale-101 active:scale-98 transition flex items-center justify-center gap-2"
-                  >
-                    <ShieldAlert className="w-5 h-5" />
-                    <span>{submittingBully ? 'Đang gửi hồ sơ...' : 'GỬI BÁO CÁO BẢO MẬT NGAY'}</span>
-                  </button>
-                </div>
-              </form>
-            )}
+            <div className="text-indigo-600 font-semibold">
+              Gặp trực tiếp: Cô Nguyễn Thị Thùy Trang (Phòng 692)
+            </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -1456,19 +1876,11 @@ function ShareCornerPage() {
 
 const COUNSELORS = [
   {
-    id: 'c1',
-    name: 'ThS. Nguyễn Tuấn Anh',
-    role: 'Chuyên gia Tâm lý Học đường (Khối THCS)',
-    location: 'Phòng Tư Vấn Tâm Lý 204 (Tầng 2 Nhà A)',
-    desc: 'Chuyên tham vấn áp lực thi cử, định hướng cảm xúc tuổi dậy thì, xung đột gia đình và phương pháp học tập hiệu quả.',
-    avatar: '👨‍🏫'
-  },
-  {
     id: 'c2',
     name: 'Cô Nguyễn Thị Thùy Trang',
-    role: 'Chuyên viên Tham vấn Tâm lý (Khối Tiểu học & THCS)',
-    location: 'Phòng Hỗ Trợ Cảm Xúc 102 (Tầng 1 Nhà Thư Viện)',
-    desc: 'Lắng nghe nỗi sợ hãi, bẽn lẽn, xây dựng lòng tự tin, kỹ năng giao tiếp hòa nhập bạn bè và vượt qua lo âu học đường.',
+    role: 'Giáo viên Tham vấn Tâm lý (TRƯỜNG TH&THCS PHƯỚC HƯNG)',
+    location: 'Phòng 692 (Tầng 6 Nhà Đa Năng - TRƯỜNG TH&THCS PHƯỚC HƯNG)',
+    desc: 'Lắng nghe nỗi sợ hãi, bẽn lẽn, xây dựng lòng tự tin, kỹ năng giao tiếp hòa nhập bạn bè và luôn đồng hành hỗ trợ học sinh tại Phòng 692.',
     avatar: '👩‍🏫'
   }
 ];
@@ -1505,27 +1917,312 @@ const ARTICLES = [
     summary: 'Cách đối thoại chân thành, nhận trách nhiệm và cùng gia đình tìm giải pháp thay vì trốn tránh trong sợ hãi.',
     readTime: '6 phút đọc',
     content: `Bố mẹ thường la mắng vì lo lắng cho tương lai của em nhiều hơn là vì ghét bỏ em.\n\n- Hãy chủ động báo điểm với bố mẹ trước khi cô giáo nhắn tin.\n- Thẳng thắn thừa nhận phần mình chưa làm tốt: "Con biết bài này con chưa ôn kỹ phần..."\n- Đề xuất giải pháp cải thiện: "Con sẽ nhờ bạn giảng lại bài này và làm thêm bài tập tuần này ạ."\n- Sự trưởng thành và trách nhiệm của em sẽ khiến bố mẹ an tâm và bao dung hơn rất nhiều.`
+  },
+  {
+    id: 'a5',
+    category: 'Quan hệ bạn bè',
+    title: 'Kỹ Năng Lắng Nghe & Thấu Cảm: Bí Quyết Gắn Kết Tình Bạn',
+    summary: 'Biết lắng nghe chân thành là chiếc chìa khóa vàng giúp em trở thành người bạn đáng tin cậy nhất trong lớp.',
+    readTime: '4 phút đọc',
+    content: `Lắng nghe không chỉ là im lặng nghe người khác nói, mà là cảm nhận được cảm xúc của đối phương:\n\n1. Nhìn vào mắt bạn với ánh nhìn thấu hiểu, không bấm điện thoại khi bạn đang kể chuyện.\n2. Không vội phán xét hay ngắt lời để đưa ra lời khuyên quá sớm.\n3. Đặt câu hỏi gợi mở: "Lúc đó bạn cảm thấy thế nào?", "Mình có thể giúp gì cho bạn không?"\n4. Giữ kín bí mật mà bạn đã tin tưởng gửi gắm cho em.`
+  },
+  {
+    id: 'a6',
+    category: 'Kỹ năng tự bảo vệ',
+    title: '4 Cách Nói "Không" Quyết Đoán Khi Bị Bạn Bè Rủ Rê Tiêu Cực',
+    summary: 'Cách từ chối khéo léo nhưng dứt khoát trước những trò đùa tai hại, trốn học hoặc hành vi bắt nạt người khác.',
+    readTime: '5 phút đọc',
+    content: `Nói "Không" là quyền lợi và sự dũng cảm của mỗi người để bảo vệ ranh giới an toàn của bản thân:\n\n1. Nguyên tắc đĩa hát hỏng: Lặp lại câu từ chối bình tĩnh: "Mình không tham gia đâu nhé", "Mình không thích việc này".\n2. Đưa ra lý do chính đáng: "Mình đã hứa về nhà đúng giờ với mẹ rồi", "Mình cần ôn bài".\n3. Đề xuất hoạt động lành mạnh thay thế: "Thay vì trêu bạn ấy, tụi mình ra sân bóng đá đi".\n4. Rời khỏi tình huống nếu cảm thấy bị ép buộc.`
   }
 ];
 
-function AppointmentsAndLibraryPage() {
-  const { currentUser } = useAuth();
-  const [subTab, setSubTab] = useState<'appointment' | 'library'>('appointment');
+// ==========================================
+// 8A. TRANG KỸ NĂNG SỐNG (ĐƯỢC ĐƯA RA NGOÀI RIÊNG BIỆT)
+// ==========================================
 
-  // State đặt lịch
+function LifeSkillsPage() {
+  const { currentUser } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCat, setSelectedCat] = useState('Tất cả');
+  const [activeArticleModal, setActiveArticleModal] = useState<any | null>(null);
+
+  const categories = ['Tất cả', 'Áp lực học tập', 'Quan hệ bạn bè', 'Kiểm soát cảm xúc', 'Giao tiếp gia đình', 'Kỹ năng tự bảo vệ'];
+
+  const handleSaveArticle = async (article: any) => {
+    try {
+      const savedItems = JSON.parse(localStorage.getItem('tamly_saved_posts') || '[]');
+      const exists = savedItems.some((item: any) => item.id === ('art_' + article.id));
+      if (!exists) {
+        savedItems.unshift({
+          id: 'art_' + article.id,
+          title: article.title,
+          content: article.content,
+          author: 'Cẩm nang Kỹ năng sống Học đường',
+          category: article.category,
+          savedAt: new Date().toLocaleDateString('vi-VN')
+        });
+        localStorage.setItem('tamly_saved_posts', JSON.stringify(savedItems));
+      }
+      if (currentUser) {
+        try {
+          const ref = doc(db, 'users', currentUser.uid, 'savedPosts', 'art_' + article.id);
+          await setDoc(ref, {
+            postId: article.id,
+            title: article.title,
+            content: article.content,
+            author: 'Cẩm nang Kỹ năng sống Học đường',
+            category: article.category,
+            savedAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.warn('Lưu Firestore phụ:', e);
+        }
+      }
+      alert('Đã lưu cẩm nang vào mục "Đã lưu" của em thành công!');
+    } catch {
+      alert('Đã lưu bài viết thành công!');
+    }
+  };
+
+  const filteredArticles = ARTICLES.filter((a) => {
+    const matchCat = selectedCat === 'Tất cả' || a.category === selectedCat;
+    const matchSearch =
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.summary.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      {/* Banner Giới thiệu Chuyên mục Kỹ năng sống */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-8 sm:p-10 text-white shadow-xl shadow-teal-200/50 mb-10 border-t border-white/30">
+        <div className="absolute top-0 right-0 -mr-12 -mt-12 w-64 h-64 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-12 -mb-12 w-64 h-64 rounded-full bg-cyan-400/20 blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-black tracking-wide mb-4 shadow-xs">
+            <Sparkles className="w-4 h-4 text-emerald-200 animate-spin" />
+            <span>CHUYÊN TRANG KỸ NĂNG SỐNG HỌC ĐƯỜNG • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white tracking-tight leading-tight mb-3">
+            Hành Trang Kỹ Năng Sống & Bản Lĩnh Học Đường
+          </h1>
+
+          <p className="text-xs sm:text-sm text-emerald-100 leading-relaxed font-normal mb-6 max-w-2xl">
+            Nơi chia sẻ những bí quyết tâm lý thiết thực, kỹ năng tự bảo vệ, giải tỏa áp lực thi cử, quản lý cảm xúc và xây dựng tình bạn tích cực dành cho các em học sinh.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              to="/dang-ky-tu-van"
+              className="px-5 py-2.5 rounded-2xl bg-white text-teal-700 hover:bg-emerald-50 font-black text-xs shadow-lg shadow-teal-900/20 hover:scale-105 active:scale-95 transition flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4 text-teal-600" />
+              <span>Đặt lịch gặp Cô Thùy Trang (Phòng 692)</span>
+            </Link>
+
+            <Link
+              to="/tro-ly-ai"
+              className="px-5 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition flex items-center gap-2"
+            >
+              <Bot className="w-4 h-4" />
+              <span>Hỏi Trợ lý AI về kỹ năng</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Mẹo Bỏ Túi Kỹ Năng Nhanh (Pocket Skills Grid) */}
+      <div className="mb-10">
+        <h2 className="text-base sm:text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-emerald-600" />
+          <span>Mẹo Bỏ Túi Xử Lý Nhanh Tình Huống Học Đường</span>
+        </h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 shadow-md shadow-emerald-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500 text-white flex items-center justify-center font-black text-sm mb-2 shadow-sm">
+              4-7-8
+            </div>
+            <h3 className="font-extrabold text-xs text-emerald-950 mb-1">Thở Sâu Hạ Căng Thẳng</h3>
+            <p className="text-[11px] text-emerald-900/80 leading-relaxed">
+              Hít vào 4 giây, giữ hơi 7 giây, thở ra nhẹ nhàng 8 giây giúp tim đập đều ngay trước giờ kiểm tra.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 shadow-md shadow-amber-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500 text-white flex items-center justify-center font-black text-sm mb-2 shadow-sm">
+              5s
+            </div>
+            <h3 className="font-extrabold text-xs text-amber-950 mb-1">Nguyên Tắc Dừng 5 Giây</h3>
+            <p className="text-[11px] text-amber-900/80 leading-relaxed">
+              Khi tức giận, đếm ngược từ 5 về 1 trước khi nói để tránh lời nói làm tổn thương bạn bè.
+            </p>
+          </div>
+
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-cyan-50 to-sky-50 border border-cyan-200/80 shadow-md shadow-cyan-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div className="w-10 h-10 rounded-2xl bg-cyan-500 text-white flex items-center justify-center font-black text-sm mb-2 shadow-sm">
+              🛡️
+            </div>
+            <h3 className="font-extrabold text-xs text-cyan-950 mb-1">Ranh Giới An Toàn</h3>
+            <p className="text-[11px] text-cyan-900/80 leading-relaxed">
+              Em luôn có quyền từ chối những việc khiến em không thoải mái. Nói "Không" là dũng cảm!
+            </p>
+          </div>
+
+          <div className="p-4 rounded-3xl bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/80 shadow-md shadow-purple-100 hover:shadow-xl hover:-translate-y-1 transition-all">
+            <div className="w-10 h-10 rounded-2xl bg-purple-500 text-white flex items-center justify-center font-black text-sm mb-2 shadow-sm">
+              🤝
+            </div>
+            <h3 className="font-extrabold text-xs text-purple-950 mb-1">Chủ Động Kết Bạn</h3>
+            <p className="text-[11px] text-purple-900/80 leading-relaxed">
+              Một nụ cười chào buổi sáng và một lời khen chân thành là chiếc cầu nối tình bạn tuyệt vời nhất.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Thanh tìm kiếm & Lọc danh mục với nút nổi 3D */}
+      <div className="bg-white/90 backdrop-blur-xl border border-indigo-100/80 p-5 sm:p-6 rounded-3xl shadow-lg shadow-indigo-100/50 space-y-4 mb-8">
+        <div className="relative">
+          <Search className="w-4 h-4 text-emerald-600 absolute left-4 top-3.5" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm bài viết, cẩm nang tâm lý, kỹ năng học đường..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm bg-slate-50/70 outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition"
+          />
+        </div>
+
+        {/* Nút lọc nổi 3D màu sắc tươi sáng */}
+        <div className="flex items-center gap-2 overflow-x-auto text-xs pb-1 scrollbar-none">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCat(cat)}
+              className={`px-4 py-2 rounded-2xl font-black whitespace-nowrap transition-all duration-200 shadow-xs ${
+                selectedCat === cat
+                  ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-200 -translate-y-0.5 ring-2 ring-emerald-200'
+                  : 'bg-white text-slate-700 hover:text-emerald-700 hover:bg-emerald-50/50 border border-slate-200/80 hover:shadow-md hover:-translate-y-0.5'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid danh sách bài viết cẩm nang kỹ năng sống */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filteredArticles.map((art) => (
+          <div
+            key={art.id}
+            className="bg-white/95 backdrop-blur-xl border border-indigo-50 rounded-3xl p-6 shadow-md shadow-slate-200/60 hover:shadow-2xl hover:shadow-teal-100 hover:-translate-y-1.5 transition-all duration-200 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-[11px] font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {art.category}
+                </span>
+                <span className="text-[11px] text-slate-400 font-semibold flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  {art.readTime}
+                </span>
+              </div>
+              <h3 className="font-black text-sm sm:text-base text-slate-800 mb-2 leading-snug">
+                {art.title}
+              </h3>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4 line-clamp-3">
+                {art.summary}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between pt-4 border-t border-slate-100 gap-2">
+              <button
+                onClick={() => setActiveArticleModal(art)}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs shadow-md shadow-emerald-200 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-1.5"
+              >
+                <span>Đọc cẩm nang</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => handleSaveArticle(art)}
+                className="p-2 rounded-xl text-slate-500 hover:text-emerald-700 bg-slate-50 hover:bg-emerald-50 border border-slate-200/60 hover:shadow-xs transition"
+                title="Lưu cẩm nang này"
+              >
+                <Bookmark className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal đọc bài viết chi tiết */}
+      {activeArticleModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto animate-in zoom-in-95">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <span className="text-[11px] font-black bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full border border-emerald-200">
+                  {activeArticleModal.category}
+                </span>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-2">
+                  {activeArticleModal.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setActiveArticleModal(null)}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line py-3 border-y border-slate-100 my-4">
+              {activeArticleModal.content}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                onClick={() => {
+                  handleSaveArticle(activeArticleModal);
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-bold hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-200 flex items-center gap-1.5"
+              >
+                <Bookmark className="w-3.5 h-3.5" />
+                <span>Lưu bài này</span>
+              </button>
+              <button
+                onClick={() => setActiveArticleModal(null)}
+                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// 8B. TRANG ĐẶT LỊCH GIÁO VIÊN (CÔ THÙY TRANG - PHÒNG 692)
+// ==========================================
+
+function AppointmentPage() {
+  const { currentUser } = useAuth();
   const [selectedCounselor, setSelectedCounselor] = useState(COUNSELORS[0].id);
   const [appointDate, setAppointDate] = useState('');
   const [appointTime, setAppointTime] = useState('14:30');
-  const [appointType, setAppointType] = useState('Trực tiếp tại Phòng 204');
+  const [appointType, setAppointType] = useState('Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692');
   const [studentNote, setStudentNote] = useState('');
   const [studentContact, setStudentContact] = useState('');
   const [appointSuccess, setAppointSuccess] = useState(false);
   const [loadingAppoint, setLoadingAppoint] = useState(false);
-
-  // State thư viện
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCat, setSelectedCat] = useState('Tất cả');
-  const [activeArticleModal, setActiveArticleModal] = useState<any | null>(null);
 
   const handleBookAppointment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1563,330 +2260,155 @@ function AppointmentsAndLibraryPage() {
     }
   };
 
-  const handleSaveArticle = async (article: any) => {
-    if (!currentUser) {
-      alert('Vui lòng đăng nhập để lưu bài viết vào mục "Đã lưu"!');
-      return;
-    }
-    try {
-      const ref = doc(db, 'users', currentUser.uid, 'savedPosts', 'art_' + article.id);
-      await setDoc(ref, {
-        postId: article.id,
-        title: article.title,
-        content: article.content,
-        author: 'Thư viện Kỹ năng Học đường',
-        category: article.category,
-        savedAt: serverTimestamp()
-      });
-      alert('Đã lưu cẩm nang vào mục "Đã lưu" trên Firestore!');
-    } catch {
-      alert('Đã lưu bài viết vào tài khoản!');
-    }
-  };
-
-  const filteredArticles = ARTICLES.filter((a) => {
-    const matchCat = selectedCat === 'Tất cả' || a.category === selectedCat;
-    const matchSearch =
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchCat && matchSearch;
-  });
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Sub-tab selection */}
-      <div className="flex justify-center mb-8">
-        <div className="p-1.5 rounded-2xl bg-white/80 backdrop-blur-md border border-white/80 shadow-md inline-flex gap-2">
-          <button
-            onClick={() => setSubTab('appointment')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              subTab === 'appointment'
-                ? 'bg-teal-600 text-white shadow-xs scale-102'
-                : 'text-slate-600 hover:text-teal-600 hover:bg-slate-50'
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12 space-y-8">
+      {/* Giới thiệu giáo viên tham vấn */}
+      <div className="grid grid-cols-1 gap-4">
+        {COUNSELORS.map((c) => (
+          <div
+            key={c.id}
+            onClick={() => setSelectedCounselor(c.id)}
+            className={`cursor-pointer p-6 rounded-3xl border transition-all ${
+              selectedCounselor === c.id
+                ? 'bg-white border-teal-500 shadow-xl shadow-teal-100 ring-2 ring-teal-300 scale-101'
+                : 'bg-white/80 border-slate-200 hover:bg-white shadow-md'
             }`}
           >
-            <Calendar className="w-4 h-4" />
-            <span>Đặt Lịch Gặp Chuyên Gia</span>
-          </button>
-          <button
-            onClick={() => setSubTab('library')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              subTab === 'library'
-                ? 'bg-purple-600 text-white shadow-xs scale-102'
-                : 'text-slate-600 hover:text-purple-600 hover:bg-slate-50'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Thư Viện Kỹ Năng Sống</span>
-          </button>
-        </div>
+            <div className="flex items-center gap-3.5 mb-2.5">
+              <span className="text-4xl p-2 rounded-2xl bg-teal-50 border border-teal-100">{c.avatar}</span>
+              <div>
+                <h2 className="font-black text-slate-800 text-base sm:text-lg leading-tight">{c.name}</h2>
+                <p className="text-xs font-black text-teal-700 mt-0.5">{c.role}</p>
+              </div>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-3">{c.desc}</p>
+            <div className="text-xs text-teal-800 font-bold flex items-center gap-1.5 bg-teal-50/80 p-2.5 rounded-xl border border-teal-100/80">
+              <Clock className="w-3.5 h-3.5 text-teal-600" />
+              <span>{c.location}</span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* SUBTAB 1: ĐẶT LỊCH GẶP CHUYÊN GIA */}
-      {subTab === 'appointment' && (
-        <div className="space-y-6">
-          {/* Giới thiệu chuyên gia */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {COUNSELORS.map((c) => (
-              <div
-                key={c.id}
-                onClick={() => setSelectedCounselor(c.id)}
-                className={`cursor-pointer p-5 rounded-3xl border transition-all ${
-                  selectedCounselor === c.id
-                    ? 'bg-white border-teal-500 shadow-lg ring-2 ring-teal-200 scale-102'
-                    : 'bg-white/70 border-white/80 hover:bg-white shadow-md'
-                }`}
-              >
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-3xl">{c.avatar}</span>
-                  <div>
-                    <h3 className="font-extrabold text-slate-800 text-sm leading-tight">{c.name}</h3>
-                    <p className="text-[11px] font-bold text-teal-700">{c.role}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 leading-relaxed mb-2">{c.desc}</p>
-                <div className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-teal-600" />
-                  <span>{c.location}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Form đặt hẹn với nút nổi 3D tươi sáng */}
+      <div className="bg-white/95 backdrop-blur-xl border border-indigo-100/80 p-6 sm:p-8 rounded-3xl shadow-xl shadow-teal-100/50">
+        <h3 className="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
+          <Calendar className="w-5 h-5 text-teal-600" />
+          <span>Phiếu Đăng Ký Đặt Lịch Giáo Viên - TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
+        </h3>
+        <p className="text-xs text-slate-500 mb-6">
+          Mọi buổi gặp đều diễn ra trong không gian riêng tư, tôn trọng và bảo mật 100% danh tính học sinh.
+        </p>
 
-          {/* Form đặt hẹn */}
-          <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl">
-            <h2 className="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-teal-600" />
-              <span>Phiếu Đăng Ký Tư Vấn Tâm Lý Học Đường</span>
-            </h2>
-            <p className="text-xs text-slate-500 mb-6">
-              Mọi buổi gặp đều diễn ra trong không gian riêng tư, tôn trọng và bảo mật 100% danh tính học sinh.
+        {appointSuccess ? (
+          <div className="bg-teal-50 border border-teal-200 rounded-3xl p-8 text-center space-y-3 animate-in zoom-in-95">
+            <div className="w-14 h-14 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+              <Check className="w-7 h-7" />
+            </div>
+            <h4 className="text-base sm:text-lg font-black text-teal-900">Đã Gửi Phiếu Đặt Hẹn Thành Công!</h4>
+            <p className="text-xs sm:text-sm text-teal-800 max-w-md mx-auto leading-relaxed">
+              Thầy cô TRƯỜNG TH&THCS PHƯỚC HƯNG đã ghi nhận lịch hẹn của em và sẽ đón tiếp em chu đáo tại Phòng 692. Em hãy yên tâm nhé!
             </p>
-
-            {appointSuccess ? (
-              <div className="bg-teal-50 border border-teal-200 rounded-3xl p-6 text-center space-y-3 animate-in zoom-in-95">
-                <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center mx-auto">
-                  <Check className="w-6 h-6" />
-                </div>
-                <h3 className="text-base font-black text-teal-900">Đã Gửi Phiếu Đặt Hẹn Thành Công!</h3>
-                <p className="text-xs sm:text-sm text-teal-800 max-w-md mx-auto">
-                  Thầy cô đã ghi nhận lịch hẹn của em và sẽ chuẩn bị phòng tư vấn chu đáo. Em nhớ kiểm tra thông báo nhé!
-                </p>
-                <button
-                  onClick={() => setAppointSuccess(false)}
-                  className="px-5 py-2 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700"
-                >
-                  Đặt thêm lịch khác
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleBookAppointment} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Ngày hẹn:</label>
-                    <input
-                      type="date"
-                      value={appointDate}
-                      onChange={(e) => setAppointDate(e.target.value)}
-                      required
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-300"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Khung giờ:</label>
-                    <select
-                      value={appointTime}
-                      onChange={(e) => setAppointTime(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-300"
-                    >
-                      <option value="08:30 (Giờ ra chơi sáng)">08:30 (Giờ ra chơi sáng)</option>
-                      <option value="10:00 (Tiết trống sáng)">10:00 (Tiết trống sáng)</option>
-                      <option value="14:30 (Giờ ra chơi chiều)">14:30 (Giờ ra chơi chiều)</option>
-                      <option value="16:30 (Sau giờ tan học)">16:30 (Sau giờ tan học)</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">Hình thức gặp:</label>
-                    <select
-                      value={appointType}
-                      onChange={(e) => setAppointType(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-300"
-                    >
-                      <option value="Trực tiếp tại Phòng 204">Trực tiếp tại Phòng Tư Vấn 204</option>
-                      <option value="Trò chuyện trực tuyến riêng tư">Trò chuyện trực tuyến bảo mật</option>
-                      <option value="Trao đổi qua thư điện tử">Trao đổi qua thư điện tử</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">
-                    Vấn đề em muốn cùng thầy cô tháo gỡ:
-                  </label>
-                  <textarea
-                    placeholder="Em đang gặp khó khăn gì? (Ví dụ: Hay mất ngủ vì lo thi, khó hòa nhập với bạn bè, áp lực từ gia đình...)"
-                    value={studentNote}
-                    onChange={(e) => setStudentNote(e.target.value)}
-                    rows={3}
-                    required
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-300"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1 uppercase">
-                    Thông tin liên hệ (Số điện thoại / Zalo hoặc lớp học):
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Em An lớp 8A2 hoặc SĐT 0912xxxxxx (để thầy cô báo giờ gặp)..."
-                    value={studentContact}
-                    onChange={(e) => setStudentContact(e.target.value)}
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-300"
-                  />
-                </div>
-
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    disabled={loadingAppoint}
-                    className="w-full py-3 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-teal-200 hover:scale-101 active:scale-98 transition flex items-center justify-center gap-2"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>{loadingAppoint ? 'Đang gửi phiếu...' : 'XÁC NHẬN ĐẶT LỊCH TƯ VẤN'}</span>
-                  </button>
-                </div>
-              </form>
-            )}
+            <button
+              onClick={() => setAppointSuccess(false)}
+              className="px-6 py-2.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white rounded-2xl text-xs font-black shadow-md shadow-teal-200 hover:scale-105 active:scale-95 transition"
+            >
+              Đặt thêm lịch khác
+            </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <form onSubmit={handleBookAppointment} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase">Ngày hẹn:</label>
+                <input
+                  type="date"
+                  value={appointDate}
+                  onChange={(e) => setAppointDate(e.target.value)}
+                  required
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400 font-semibold"
+                />
+              </div>
 
-      {/* SUBTAB 2: THƯ VIỆN KỸ NĂNG SỐNG */}
-      {subTab === 'library' && (
-        <div className="space-y-6">
-          {/* Thanh tìm kiếm & Lọc danh mục */}
-          <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-5 rounded-3xl shadow-md space-y-3">
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-              <input
-                type="text"
-                placeholder="Tìm kiếm bài viết, cẩm nang tâm lý, kỹ năng học đường..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-xs sm:text-sm bg-slate-50/50 outline-none focus:ring-2 focus:ring-purple-300"
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase">Khung giờ:</label>
+                <select
+                  value={appointTime}
+                  onChange={(e) => setAppointTime(e.target.value)}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400 font-semibold"
+                >
+                  <option value="08:30 (Giờ ra chơi sáng)">08:30 (Giờ ra chơi sáng)</option>
+                  <option value="10:00 (Tiết trống sáng)">10:00 (Tiết trống sáng)</option>
+                  <option value="14:30 (Giờ ra chơi chiều)">14:30 (Giờ ra chơi chiều)</option>
+                  <option value="16:30 (Sau giờ tan học)">16:30 (Sau giờ tan học)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-black text-slate-700 mb-1 uppercase">Địa điểm gặp:</label>
+                <select
+                  value={appointType}
+                  onChange={(e) => setAppointType(e.target.value)}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400 font-semibold"
+                >
+                  <option value="Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692">Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692</option>
+                  <option value="Trò chuyện trực tuyến bảo mật">Trò chuyện trực tuyến bảo mật</option>
+                  <option value="Trao đổi qua thư điện tử">Trao đổi qua thư điện tử</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-700 mb-1 uppercase">
+                Vấn đề em muốn cùng thầy cô tháo gỡ:
+              </label>
+              <textarea
+                placeholder="Em đang gặp khó khăn gì? (Ví dụ: Hay mất ngủ vì lo thi, khó hòa nhập với bạn bè, áp lực từ gia đình...)"
+                value={studentNote}
+                onChange={(e) => setStudentNote(e.target.value)}
+                rows={3}
+                required
+                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400"
               />
             </div>
 
-            <div className="flex items-center gap-2 overflow-x-auto text-xs pb-1 no-scrollbar">
-              {['Tất cả', 'Áp lực học tập', 'Quan hệ bạn bè', 'Kiểm soát cảm xúc', 'Giao tiếp gia đình'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCat(cat)}
-                  className={`px-3 py-1.5 rounded-xl font-bold whitespace-nowrap transition ${
-                    selectedCat === cat
-                      ? 'bg-purple-600 text-white shadow-xs'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div>
+              <label className="block text-xs font-black text-slate-700 mb-1 uppercase">
+                Thông tin liên hệ (Số điện thoại / Zalo hoặc lớp học):
+              </label>
+              <input
+                type="text"
+                placeholder="Ví dụ: Em An lớp 8A2 hoặc SĐT 0912xxxxxx (để thầy cô báo giờ gặp)..."
+                value={studentContact}
+                onChange={(e) => setStudentContact(e.target.value)}
+                className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-teal-400"
+              />
             </div>
-          </div>
 
-          {/* Grid bài viết */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {filteredArticles.map((art) => (
-              <div
-                key={art.id}
-                className="bg-white/80 backdrop-blur-xl border border-white/80 p-5 rounded-3xl shadow-md hover:shadow-xl transition flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                      {art.category}
-                    </span>
-                    <span className="text-[10px] text-slate-400">{art.readTime}</span>
-                  </div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-800 mb-2 leading-snug">
-                    {art.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 leading-relaxed mb-4">{art.summary}</p>
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <button
-                    onClick={() => setActiveArticleModal(art)}
-                    className="text-xs font-bold text-purple-600 hover:text-purple-800 flex items-center gap-1"
-                  >
-                    <span>Đọc chi tiết</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-
-                  <button
-                    onClick={() => handleSaveArticle(art)}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-purple-600 hover:bg-purple-50 transition"
-                    title="Lưu bài viết"
-                  >
-                    <Bookmark className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Modal đọc bài viết chi tiết */}
-      {activeArticleModal && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-100 max-h-[85vh] overflow-y-auto animate-in zoom-in-95">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <span className="text-[10px] font-bold bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
-                  {activeArticleModal.category}
-                </span>
-                <h3 className="text-lg sm:text-xl font-black text-slate-900 mt-1">
-                  {activeArticleModal.title}
-                </h3>
-              </div>
+            <div className="pt-2">
               <button
-                onClick={() => setActiveArticleModal(null)}
-                className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400"
+                type="submit"
+                disabled={loadingAppoint}
+                className="w-full py-3.5 bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-teal-200/80 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center justify-center gap-2"
               >
-                <X className="w-5 h-5" />
+                <Calendar className="w-4 h-4" />
+                <span>{loadingAppoint ? 'Đang gửi phiếu...' : 'XÁC NHẬN ĐẶT LỊCH HẸN VỚI CÔ TRANG'}</span>
               </button>
             </div>
-
-            <div className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line py-2 border-y border-slate-100 my-4">
-              {activeArticleModal.content}
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                onClick={() => {
-                  handleSaveArticle(activeArticleModal);
-                }}
-                className="px-4 py-2 bg-purple-50 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-100 flex items-center gap-1.5"
-              >
-                <Bookmark className="w-3.5 h-3.5" />
-                <span>Lưu bài này</span>
-              </button>
-              <button
-                onClick={() => setActiveArticleModal(null)}
-                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-300"
-              >
-                Đóng
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          </form>
+        )}
+      </div>
     </div>
   );
+}
+
+// Wrapper chuyển đổi cho backward compatibility
+function AppointmentsAndLibraryPage() {
+  const location = useLocation();
+  if (location.pathname === '/dang-ky-tu-van') {
+    return <AppointmentPage />;
+  }
+  return <LifeSkillsPage />;
 }
 
 // ==========================================
@@ -1900,16 +2422,31 @@ function SavedPostsPage() {
 
   useEffect(() => {
     const fetchSaved = async () => {
+      // 1. Lấy dữ liệu đã lưu từ máy (localStorage) - không cần đăng nhập
+      const localItems: any[] = JSON.parse(localStorage.getItem('tamly_saved_posts') || '[]');
+      
       if (!currentUser) {
+        setSavedList(localItems);
         setLoading(false);
         return;
       }
+
+      // 2. Nếu là tài khoản quản trị/cô Trang có đăng nhập, lấy thêm từ Firestore
       try {
         const q = query(collection(db, 'users', currentUser.uid, 'savedPosts'), orderBy('savedAt', 'desc'));
         const snapshot = await getDocs(q);
-        setSavedList(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+        const fbItems = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+        // Hợp nhất dữ liệu tránh trùng lặp
+        const combined = [...fbItems];
+        localItems.forEach((li) => {
+          if (!combined.some((ci) => ci.id === li.id)) {
+            combined.push(li);
+          }
+        });
+        setSavedList(combined);
       } catch (e) {
         console.error('Lỗi tải bài đã lưu:', e);
+        setSavedList(localItems);
       } finally {
         setLoading(false);
       }
@@ -1918,32 +2455,21 @@ function SavedPostsPage() {
   }, [currentUser]);
 
   const handleRemoveSaved = async (id: string) => {
-    if (!currentUser) return;
-    try {
-      await deleteDoc(doc(db, 'users', currentUser.uid, 'savedPosts', id));
-      setSavedList(savedList.filter((item) => item.id !== id));
-    } catch (e) {
-      console.error('Lỗi xóa:', e);
+    // Xóa từ localStorage
+    const localItems: any[] = JSON.parse(localStorage.getItem('tamly_saved_posts') || '[]');
+    const updatedLocal = localItems.filter((item) => item.id !== id);
+    localStorage.setItem('tamly_saved_posts', JSON.stringify(updatedLocal));
+    
+    // Nếu có đăng nhập Firestore thì xóa trên Firestore
+    if (currentUser) {
+      try {
+        await deleteDoc(doc(db, 'users', currentUser.uid, 'savedPosts', id));
+      } catch (e) {
+        console.error('Lỗi xóa Firestore:', e);
+      }
     }
+    setSavedList((prev) => prev.filter((item) => item.id !== id));
   };
-
-  if (!currentUser) {
-    return (
-      <div className="max-w-md mx-auto my-16 p-8 bg-white/80 backdrop-blur-xl rounded-3xl text-center shadow-xl border border-white/80">
-        <Bookmark className="w-12 h-12 text-indigo-400 mx-auto mb-3" />
-        <h2 className="text-lg font-bold text-slate-800 mb-2">Đăng Nhập Để Xem Bài Đã Lưu</h2>
-        <p className="text-xs text-slate-500 mb-6">
-          Em cần đăng nhập vào tài khoản để đồng bộ và lưu giữ các bài viết bổ ích trên đám mây Firestore.
-        </p>
-        <Link
-          to="/tai-khoan"
-          className="inline-block px-5 py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-indigo-700 transition"
-        >
-          Đăng nhập ngay
-        </Link>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -1954,7 +2480,9 @@ function SavedPostsPage() {
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-800">Bài Viết & Cẩm Nang Đã Lưu</h1>
-            <p className="text-xs text-slate-500">Được lưu trữ bảo mật trên Firestore cá nhân</p>
+            <p className="text-xs text-slate-500">
+              {currentUser ? 'Đồng bộ an toàn trên tài khoản của bạn' : 'Lưu trữ tự do trên thiết bị của bạn • Không cần đăng nhập'}
+            </p>
           </div>
         </div>
         <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">
@@ -1963,12 +2491,22 @@ function SavedPostsPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12 text-slate-400 text-xs">Đang tải dữ liệu từ Firestore...</div>
+        <div className="text-center py-12 text-slate-400 text-xs">Đang tải danh sách bài đã lưu...</div>
       ) : savedList.length === 0 ? (
-        <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl text-center border border-white/80 shadow-md">
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Chưa có bài viết nào được lưu. Hãy bấm biểu tượng 🔖 ở Góc Chia Sẻ hoặc Thư Viện để lưu lại nhé!
+        <div className="bg-white/80 backdrop-blur-xl p-8 rounded-3xl text-center border border-white/80 shadow-md space-y-3">
+          <Bookmark className="w-10 h-10 text-indigo-300 mx-auto" />
+          <p className="text-slate-600 text-xs sm:text-sm font-semibold">
+            Em chưa lưu bài viết hay cẩm nang nào.
           </p>
+          <p className="text-slate-400 text-xs max-w-md mx-auto">
+            Em có thể bấm vào biểu tượng 🔖 ở mục <strong>Góc Chia Sẻ</strong> hoặc <strong>Thư Viện Kỹ Năng</strong> để lưu lại đọc bất kỳ lúc nào mà không cần đăng nhập!
+          </p>
+          <Link
+            to="/thu-vien"
+            className="inline-block mt-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md hover:bg-indigo-700 transition"
+          >
+            Khám phá Thư viện ngay
+          </Link>
         </div>
       ) : (
         <div className="space-y-4">
@@ -2004,7 +2542,7 @@ function SavedPostsPage() {
 // ==========================================
 
 function DashboardPage() {
-  const { userRole } = useAuth();
+  const { userRole, quickLogin } = useAuth();
   const [activeTab, setActiveTab] = useState<'reports' | 'posts' | 'appointments'>('reports');
   const [bullyingList, setBullyingList] = useState<any[]>([]);
   const [postsList, setPostsList] = useState<any[]>([]);
@@ -2059,6 +2597,55 @@ function DashboardPage() {
     }
   };
 
+  // Nếu chưa đăng nhập với quyền Quản trị hoặc Cô Thùy Trang:
+  if (userRole !== 'ADMIN' && userRole !== 'COUNSELOR') {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <div className="bg-white/85 backdrop-blur-xl border border-indigo-100 p-8 rounded-3xl shadow-xl text-center space-y-5">
+          <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center mx-auto shadow-sm">
+            <ShieldCheck className="w-8 h-8 text-indigo-600" />
+          </div>
+          <div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-800">
+              Khu Vực Quản Trị Hệ Thống
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              TRƯỜNG TH&THCS PHƯỚC HƯNG
+            </p>
+          </div>
+          
+          <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 text-xs sm:text-sm text-indigo-950 text-left leading-relaxed space-y-2">
+            <p className="font-bold flex items-center gap-1.5 text-indigo-900">
+              <Lock className="w-4 h-4 text-indigo-600 shrink-0" />
+              <span>Chỉ dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang</span>
+            </p>
+            <p className="text-slate-600">
+              Mục Quản Trị này dùng để tiếp nhận và xử lý hồ sơ báo cáo bắt nạt học đường, danh sách học sinh đặt lịch tư vấn và kiểm duyệt bài viết tâm sự.
+            </p>
+            <p className="text-emerald-800 font-semibold pt-1 border-t border-indigo-100">
+              ✓ Tất cả học sinh, phụ huynh và khách vào sử dụng toàn bộ tính năng khác của cổng tư vấn mà <strong>KHÔNG CẦN ĐĂNG NHẬP</strong>.
+            </p>
+          </div>
+
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              onClick={() => quickLogin('thuytrang.nguyen@school.edu.vn', 'demo123')}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md transition hover:scale-105"
+            >
+              Đăng nhập: Cô Nguyễn Thị Thùy Trang
+            </button>
+            <button
+              onClick={() => quickLogin('quantri.minh@school.edu.vn', 'admin123')}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition hover:scale-105"
+            >
+              Đăng nhập: Quản trị viên (BGH)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
@@ -2068,9 +2655,9 @@ function DashboardPage() {
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-800">Bàn Điều Khiển Quản Trị Học Đường</h1>
+            <h1 className="text-xl font-black text-slate-800">Bàn Điều Khiển Quản Trị - TRƯỜNG TH&THCS PHƯỚC HƯNG</h1>
             <p className="text-xs text-slate-500">
-              Dành cho Ban Giám Hiệu, Thầy Nguyễn Tuấn Anh & Cô Nguyễn Thị Thùy Trang
+              Dành cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)
             </p>
           </div>
         </div>
@@ -2089,7 +2676,7 @@ function DashboardPage() {
           }`}
         >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-rose-800">Báo Cáo Bạo Lực</span>
+            <span className="text-xs font-bold text-rose-800">Phòng Chống Bắt Nạt</span>
             <ShieldAlert className="w-4 h-4 text-rose-600" />
           </div>
           <div className="text-2xl font-black text-rose-900">{bullyingList.length}</div>
@@ -2103,7 +2690,7 @@ function DashboardPage() {
           }`}
         >
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs font-bold text-teal-800">Lịch Hẹn Tư Vấn</span>
+            <span className="text-xs font-bold text-teal-800">Lịch Hẹn Giáo Viên</span>
             <Calendar className="w-4 h-4 text-teal-600" />
           </div>
           <div className="text-2xl font-black text-teal-900">{appointList.length}</div>
@@ -2173,7 +2760,7 @@ function DashboardPage() {
         {/* Tab 2: Appointments */}
         {activeTab === 'appointments' && (
           <div className="space-y-4">
-            <h3 className="font-extrabold text-sm text-slate-800">Danh Sách Học Sinh Đặt Lịch Tư Vấn</h3>
+            <h3 className="font-extrabold text-sm text-slate-800">Danh Sách Học Sinh Đặt Lịch Giáo Viên</h3>
             {appointList.length === 0 ? (
               <p className="text-xs text-slate-400 py-6 text-center">Chưa có lịch hẹn nào.</p>
             ) : (
@@ -2241,55 +2828,29 @@ function DashboardPage() {
 
 const DEMO_ACCOUNTS = [
   {
-    role: 'Học sinh THCS',
-    name: 'Em Trần Hoài An',
-    email: 'an.tran@school.edu.vn',
-    pass: 'demo123',
-    badge: 'STUDENT',
-    color: 'bg-indigo-50 text-indigo-700'
-  },
-  {
-    role: 'Học sinh Tiểu học',
-    name: 'Em Nguyễn Thanh Bình',
-    email: 'binh.nguyen@school.edu.vn',
-    pass: 'demo123',
-    badge: 'STUDENT',
-    color: 'bg-sky-50 text-sky-700'
-  },
-  {
-    role: 'Tư vấn viên THCS',
-    name: 'ThS. Nguyễn Tuấn Anh',
-    email: 'tuananh.nguyen@school.edu.vn',
-    pass: 'demo123',
-    badge: 'COUNSELOR',
-    color: 'bg-teal-50 text-teal-700'
-  },
-  {
-    role: 'Tư vấn viên Tiểu học',
+    role: 'Giáo viên Tham vấn (Phòng 692)',
     name: 'Cô Nguyễn Thị Thùy Trang',
     email: 'thuytrang.nguyen@school.edu.vn',
     pass: 'demo123',
     badge: 'COUNSELOR',
-    color: 'bg-purple-50 text-purple-700'
+    color: 'bg-purple-100 text-purple-800 border border-purple-200'
   },
   {
-    role: 'Quản trị viên',
-    name: 'Thầy Minh (Ban Giám Hiệu)',
+    role: 'Quản trị viên Hệ thống (BGH)',
+    name: 'Ban Giám Hiệu / Quản trị viên',
     email: 'quantri.minh@school.edu.vn',
     pass: 'admin123',
     badge: 'ADMIN',
-    color: 'bg-amber-50 text-amber-700'
+    color: 'bg-amber-100 text-amber-800 border border-amber-200'
   }
 ];
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [displayNameInput, setDisplayNameInput] = useState('');
-  const [isRegister, setIsRegister] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, register, quickLogin, currentUser, logout } = useAuth();
+  const { login, quickLogin, currentUser, displayName, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -2297,14 +2858,10 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      if (isRegister) {
-        await register(email, password, displayNameInput || email.split('@')[0]);
-      } else {
-        await login(email, password);
-      }
-      navigate('/');
+      await login(email, password);
+      navigate('/dashboard');
     } catch (err: any) {
-      setError(err.message || 'Lỗi đăng nhập hoặc mật khẩu không chính xác.');
+      setError(err.message || 'Lỗi đăng nhập hoặc tài khoản/mật khẩu không chính xác.');
     } finally {
       setLoading(false);
     }
@@ -2315,7 +2872,7 @@ function LoginPage() {
     setLoading(true);
     try {
       await quickLogin(accEmail, accPass);
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: any) {
       setError('Lỗi đăng nhập nhanh: ' + err.message);
     } finally {
@@ -2324,38 +2881,71 @@ function LoginPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
+    <div className="max-w-4xl mx-auto px-4 py-10">
+      {/* Thông báo quan trọng: Khách & Học sinh không cần đăng nhập */}
+      <div className="mb-8 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <Heart className="w-5 h-5 fill-white" />
+          </div>
+          <div>
+            <h3 className="font-black text-sm sm:text-base text-emerald-950 flex items-center gap-2">
+              <span>Dành Cho Học Sinh, Quý Phụ Huynh & Khách Thăm</span>
+              <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-bold">
+                Không cần đăng nhập
+              </span>
+            </h3>
+            <p className="text-xs sm:text-sm text-emerald-800 mt-1 leading-relaxed">
+              Tất cả mọi người vào Cổng tư vấn đều có thể sử dụng toàn bộ tính năng (Nhật ký cảm xúc, Trợ lý AI, Báo cáo bắt nạt, Thư viện, Đặt lịch giáo viên, Góc chia sẻ) mà <strong>KHÔNG CẦN ĐĂNG NHẬP</strong>.
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/')}
+          className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition hover:scale-105 shrink-0"
+        >
+          Vào trang chủ ngay
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-        {/* Form đăng nhập */}
+        {/* Form đăng nhập dành riêng cho Quản trị & Cô Trang */}
         <div className="md:col-span-6 bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl">
           <div className="text-center mb-6">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
               <Lock className="w-6 h-6" />
             </div>
-            <h2 className="text-xl font-black text-slate-800">
-              {isRegister ? 'Tạo Tài Khoản Mới' : 'Đăng Nhập Hệ Thống'}
+            <h2 className="text-lg sm:text-xl font-black text-slate-800">
+              Đăng Nhập Quản Trị & Cô Thùy Trang
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Đồng bộ dữ liệu trên Firestore (Dự án: hinh123-fd678)
+              Dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)
             </p>
           </div>
 
           {currentUser ? (
             <div className="bg-indigo-50 p-6 rounded-2xl text-center space-y-3">
               <p className="text-xs text-indigo-900 font-bold">
-                Em đang đăng nhập với tài khoản: <br />
-                <span className="text-sm font-black text-indigo-700">{currentUser.email}</span>
+                Đang đăng nhập với tài khoản: <br />
+                <span className="text-sm font-black text-indigo-700">{displayName}</span>
+                <span className="block text-[11px] text-slate-500 font-mono mt-0.5">({currentUser.email})</span>
               </p>
-              <div className="flex justify-center gap-3 pt-2">
+              <div className="flex flex-wrap justify-center gap-2 pt-2">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition"
+                >
+                  Vào Bàn Quản Trị
+                </button>
                 <button
                   onClick={() => navigate('/')}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold"
+                  className="px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold hover:bg-slate-200 transition"
                 >
-                  Vào trang chủ
+                  Trang chủ
                 </button>
                 <button
                   onClick={logout}
-                  className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold"
+                  className="px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition"
                 >
                   Đăng xuất
                 </button>
@@ -2369,26 +2959,13 @@ function LoginPage() {
                 </div>
               )}
 
-              {isRegister && (
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Họ và tên của em:</label>
-                  <input
-                    type="text"
-                    value={displayNameInput}
-                    onChange={(e) => setDisplayNameInput(e.target.value)}
-                    placeholder="Ví dụ: Em Nguyễn Văn An..."
-                    className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300"
-                  />
-                </div>
-              )}
-
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Tên tài khoản:</label>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Tài khoản:</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@school.edu.vn"
+                  placeholder="thuytrang.nguyen@school.edu.vn"
                   required
                   className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-300"
                 />
@@ -2411,48 +2988,45 @@ function LoginPage() {
                 disabled={loading}
                 className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg shadow-indigo-200 transition"
               >
-                {loading ? 'Đang xử lý...' : isRegister ? 'Tạo tài khoản' : 'Đăng nhập ngay'}
+                {loading ? 'Đang xác thực...' : 'Đăng nhập vào hệ thống'}
               </button>
 
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsRegister(!isRegister)}
-                  className="text-xs text-indigo-600 font-bold hover:underline"
-                >
-                  {isRegister ? 'Đã có tài khoản? Đăng nhập tại đây' : 'Chưa có tài khoản? Bấm để đăng ký'}
-                </button>
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 text-center leading-relaxed">
+                Tài khoản được cấp độc quyền bởi Trường TH&THCS Phước Hưng cho BGH và Cô Trang.
               </div>
             </form>
           )}
         </div>
 
-        {/* Danh sách tài khoản mẫu bấm 1-click */}
+        {/* Danh sách 2 tài khoản chính thức bấm 1-click */}
         <div className="md:col-span-6 bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-8 rounded-3xl shadow-xl space-y-4">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-1">
             <Sparkles className="w-5 h-5 text-indigo-600" />
             <h3 className="font-black text-sm sm:text-base text-slate-800">
-              Đăng Nhập Nhanh Trải Nghiệm (1-Click)
+              Đăng Nhập Nhanh 1-Click
             </h3>
           </div>
           <p className="text-xs text-slate-500">
-            Bấm vào bất kỳ tài khoản nào bên dưới để đăng nhập ngay mà không cần gõ mật khẩu:
+            Dành cho Quản trị viên và Cô Nguyễn Thị Thùy Trang (bấm "Vào ngay" để truy cập):
           </p>
 
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {DEMO_ACCOUNTS.map((acc, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-xs transition flex items-center justify-between gap-3"
+                className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-xs transition flex items-center justify-between gap-3"
               >
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-xs text-slate-800">{acc.name}</span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.color}`}>
-                      {acc.role}
+                      {acc.badge}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 font-mono mt-0.5">
+                  <div className="text-[11px] text-slate-600 font-medium mt-0.5">
+                    {acc.role}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {acc.email} • Pass: {acc.pass}
                   </div>
                 </div>
@@ -2460,7 +3034,7 @@ function LoginPage() {
                 <button
                   onClick={() => handleQuick(acc.email, acc.pass)}
                   disabled={loading}
-                  className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 text-xs font-bold transition shadow-2xs shrink-0"
+                  className="px-3.5 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 text-xs font-bold transition shadow-2xs shrink-0"
                 >
                   Vào ngay
                 </button>
@@ -2495,22 +3069,24 @@ function AppContent() {
           <Route path="/cam-xuc" element={<EmotionPage />} />
           <Route path="/tro-ly-ai" element={<AIChatPage />} />
           <Route path="/chia-se" element={<ShareCornerPage />} />
-          <Route path="/chong-bat-nat" element={<ShareCornerPage />} />
-          <Route path="/thu-vien" element={<AppointmentsAndLibraryPage />} />
+          <Route path="/chong-bat-nat" element={<BullyReportPage />} />
+          <Route path="/ky-nang-song" element={<LifeSkillsPage />} />
+          <Route path="/thu-vien" element={<LifeSkillsPage />} />
           <Route path="/bai-viet-da-luu" element={<SavedPostsPage />} />
-          <Route path="/dang-ky-tu-van" element={<AppointmentsAndLibraryPage />} />
+          <Route path="/dang-ky-tu-van" element={<AppointmentPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/quan-tri" element={<DashboardPage />} />
           <Route path="/tai-khoan" element={<LoginPage />} />
         </Routes>
       </main>
 
-      {/* 4. Nút Floating SOS 111 góc phải màn hình */}
+      {/* 4. Nút Floating SOS 111 góc phải màn hình (giữ duy nhất ở dưới, nổi khối 3D rực rỡ) */}
       <div className="fixed bottom-6 right-6 z-40">
         <button
           onClick={() => setEmergencyOpen(true)}
-          className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white rounded-full font-black text-xs shadow-xl shadow-rose-300 hover:scale-105 active:scale-95 transition-all"
+          className="flex items-center gap-2 px-5 py-3.5 bg-gradient-to-r from-rose-500 via-red-600 to-rose-600 hover:from-rose-600 hover:to-red-700 text-white rounded-full font-black text-xs sm:text-sm shadow-2xl shadow-rose-400/80 hover:shadow-rose-500 hover:-translate-y-1 active:translate-y-0.5 transition-all ring-4 ring-rose-200/80"
         >
-          <PhoneCall className="w-4 h-4 animate-bounce" />
+          <PhoneCall className="w-4 h-4 sm:w-5 sm:h-5 animate-bounce" />
           <span>SOS Khẩn Cấp 111</span>
         </button>
       </div>

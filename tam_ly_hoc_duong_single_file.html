@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tâm Lý Học Đường - Lắng Nghe & Đồng Hành (Firebase: hinh123-fd678)</title>
+  <title>CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG - TRƯỜNG TH&THCS PHƯỚC HƯNG (Firebase: hinh123-fd678)</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -63,72 +63,72 @@
 <body class="bg-gradient-to-br from-indigo-50/80 via-sky-50/70 to-purple-50/80 min-h-screen flex flex-col text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900">
 
   <!-- ========================================================= -->
-  <!-- 1. THANH TRẠNG THÁI KẾT NỐI FIREBASE CỐ ĐỊNH TRÊN CÙNG   -->
-  <!-- ========================================================= -->
-  <header class="sticky top-0 z-50 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 text-white text-xs font-semibold py-1.5 px-4 shadow-md backdrop-blur-md">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="relative flex h-2.5 w-2.5">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-200"></span>
-        </span>
-        <span class="bg-white/20 border border-white/30 text-[10px] font-black uppercase px-2 py-0.5 rounded tracking-wider">
-          🔥 FIREBASE CONNECTED
-        </span>
-        <span class="text-xs">
-          Dự án: <strong class="font-extrabold underline decoration-white/40">hinh123-fd678</strong> đang hoạt động ổn định trên Firestore & Auth
-        </span>
-      </div>
-      <div class="hidden sm:flex items-center gap-2 text-[11px] text-white/90">
-        <span class="bg-white/15 px-2.5 py-0.5 rounded-full font-mono">Cloud Firestore Active</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- ========================================================= -->
   <!-- 2. THANH ĐIỀU HƯỚNG (NAVBAR) GLASSMORPHISM                -->
   <!-- ========================================================= -->
-  <nav class="sticky top-[31px] z-40 glass border-b border-white/60 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-      
+  <nav class="sticky top-0 z-40 glass border-b border-indigo-100/80 shadow-xs">
+    <!-- Hàng 1: Logo trường + Nút Tài khoản / Đăng nhập -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3">
       <!-- Brand Logo -->
-      <a href="javascript:void(0)" onclick="switchTab('home')" class="flex items-center gap-2.5 group">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
+      <a href="javascript:void(0)" onclick="switchTab('home')" class="flex items-center gap-2.5 group shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform shrink-0">
           <i data-lucide="heart" class="w-5 h-5 fill-white"></i>
         </div>
         <div>
-          <span class="text-base sm:text-lg font-black bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 bg-clip-text text-transparent block leading-tight">
-            Tâm Lý Học Đường
+          <span class="text-sm sm:text-base md:text-lg font-black bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 bg-clip-text text-transparent block leading-tight">
+            CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG
           </span>
-          <span class="text-[10px] font-medium text-slate-500 block leading-none">
-            Lắng nghe & Đồng hành cùng em
+          <span class="text-[10px] sm:text-[11px] font-bold text-indigo-800 block leading-none mt-0.5">
+            TRƯỜNG TH&THCS PHƯỚC HƯNG
           </span>
         </div>
       </a>
 
-      <!-- Desktop Nav Menu -->
-      <div class="hidden xl:flex items-center gap-1 text-xs font-semibold text-slate-600" id="desktopNav">
-        <button onclick="switchTab('home')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="home">Trang chủ</button>
-        <button onclick="switchTab('emotion')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="emotion">Cảm xúc</button>
-        <button onclick="switchTab('ai')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="ai">Trợ lý AI</button>
-        <button onclick="switchTab('share')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="share">Góc chia sẻ</button>
-        <button onclick="switchTab('bully')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="bully">Chống bắt nạt</button>
-        <button onclick="switchTab('library')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="library">Thư viện</button>
-        <button onclick="switchTab('saved')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="saved">Đã lưu</button>
-        <button onclick="switchTab('appointment')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="appointment">Đặt lịch</button>
-        <button onclick="switchTab('dashboard')" class="nav-btn px-3 py-1.5 rounded-xl transition-all" data-tab="dashboard">Quản trị</button>
-      </div>
-
       <!-- Action Buttons -->
-      <div class="flex items-center gap-2.5">
-        <button onclick="openModal('emergencyModal')" class="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-md shadow-rose-200 hover:scale-105 active:scale-95 transition-all">
-          <i data-lucide="phone-call" class="w-3.5 h-3.5 animate-bounce"></i>
-          <span>SOS 111</span>
-        </button>
-
+      <div class="flex items-center gap-2 shrink-0">
         <div id="authStatusArea">
-          <button onclick="switchTab('login')" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all hover:scale-105">
-            Đăng nhập
+          <button onclick="switchTab('login')" title="Dành cho Quản trị & Cô Nguyễn Thị Thùy Trang" class="px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all hover:scale-105 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <span>Đăng nhập (Quản trị & Cô Trang)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hàng 2: THANH TIÊU ĐỀ MENU TOÀN BỘ ĐƯỢC ĐƯA RA NGOÀI (CÁC NÚT ĐƯỢC NỔI LÊN, MÀU SẮC TƯƠI SÁNG) -->
+    <div class="border-t border-indigo-100/70 bg-gradient-to-r from-indigo-50/60 via-purple-50/40 to-pink-50/60 py-1.5">
+      <div class="max-w-7xl mx-auto px-2 sm:px-6">
+        <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-1 scrollbar-none text-[11px] sm:text-xs font-semibold" id="desktopNav">
+          <button onclick="switchTab('home')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-black shadow-md shadow-indigo-300/70 -translate-y-0.5 ring-2 ring-indigo-200" data-tab="home">
+            <i data-lucide="heart" class="w-3.5 h-3.5 text-white"></i>
+            <span>Trang chủ</span>
+          </button>
+          <button onclick="switchTab('ai')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="ai">
+            <i data-lucide="bot" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Trợ lý AI</span>
+          </button>
+          <button onclick="switchTab('bully')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="bully">
+            <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Phòng chống bắt nạt học đường</span>
+          </button>
+          <button onclick="switchTab('emotion')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="emotion">
+            <i data-lucide="smile" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Cảm xúc</span>
+          </button>
+          <button onclick="switchTab('share')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="share">
+            <i data-lucide="message-square" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Góc chia sẻ</span>
+          </button>
+          <button onclick="switchTab('skills')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="skills">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Kỹ năng sống</span>
+          </button>
+          <button onclick="switchTab('appointment')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="appointment">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Đặt lịch giáo viên</span>
+          </button>
+          <button onclick="switchTab('dashboard')" class="nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold" data-tab="dashboard">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-indigo-600"></i>
+            <span>Quản Trị</span>
           </button>
         </div>
       </div>
@@ -146,7 +146,7 @@
         
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-indigo-200 text-indigo-700 text-xs font-bold shadow-xs mb-6">
           <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i>
-          <span>Cổng Thông Tin Hỗ Trợ Tâm Lý Học Đường 4.0 • Firebase: hinh123-fd678</span>
+          <span>CỔNG TƯ VẤN TÂM LÝ HỌC ĐƯỜNG • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
         </div>
 
         <h1 class="text-3xl sm:text-5xl md:text-6xl font-black text-slate-900 tracking-tight leading-tight mb-5">
@@ -157,72 +157,72 @@
         </h1>
 
         <p class="text-slate-600 text-sm sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10">
-          Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh. Nơi mọi lo âu về áp lực điểm số, thi cử, tình bạn và cảm xúc tuổi học trò luôn được lắng nghe và bảo mật trọn vẹn.
+          Không gian an toàn, ấm áp và thấu cảm dành riêng cho học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG. Nơi mọi lo âu về áp lực điểm số, thi cử, tình bạn, cảm xúc cá nhân và phòng chống bắt nạt học đường luôn được lắng nghe và bảo mật trọn vẹn.
         </p>
 
-        <!-- 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto mb-16">
+        <!-- 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
           
           <!-- Nút 1: Góc Chia Sẻ Tâm Tư -->
-          <button onclick="switchTab('share')" class="group p-6 rounded-3xl bg-gradient-to-b from-indigo-500 to-indigo-700 text-white shadow-xl shadow-indigo-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all flex flex-col items-center justify-center">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <i data-lucide="message-square" class="w-7 h-7 text-white"></i>
+          <button onclick="switchTab('share')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-300/70 hover:shadow-2xl hover:shadow-purple-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
+            <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-purple-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+              <i data-lucide="message-square" class="w-7 h-7 text-white drop-shadow"></i>
             </div>
-            <span class="text-base sm:text-lg font-black">Góc Chia Sẻ Tâm Tư</span>
-            <span class="text-xs text-indigo-100 mt-1 font-medium">Tâm sự ẩn danh, trải lòng & tìm sự đồng cảm</span>
+            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Góc Chia Sẻ Tâm Tư</span>
+            <span class="text-xs text-purple-100 mt-1.5 font-medium text-center">Tâm sự ẩn danh, trải lòng & tìm sự đồng cảm</span>
           </button>
 
           <!-- Nút 2: Trò Chuyện Cùng Trợ Lý AI -->
-          <button onclick="switchTab('ai')" class="group p-6 rounded-3xl bg-gradient-to-b from-sky-500 to-cyan-600 text-white shadow-xl shadow-sky-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all flex flex-col items-center justify-center">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <i data-lucide="bot" class="w-7 h-7 text-white"></i>
+          <button onclick="switchTab('ai')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-cyan-400 via-sky-500 to-blue-600 text-white shadow-xl shadow-sky-300/70 hover:shadow-2xl hover:shadow-sky-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
+            <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-sky-900/20 group-hover:scale-110 group-hover:-rotate-3 transition-transform">
+              <i data-lucide="bot" class="w-7 h-7 text-white drop-shadow"></i>
             </div>
-            <span class="text-base sm:text-lg font-black">Trò Chuyện Cùng Trợ Lý AI</span>
-            <span class="text-xs text-sky-100 mt-1 font-medium">Tư vấn 24/7, xoa dịu áp lực & giảm stress</span>
+            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Trò Chuyện Cùng Trợ Lý AI</span>
+            <span class="text-xs text-sky-100 mt-1.5 font-medium text-center">Tư vấn 24/7, xoa dịu áp lực & giảm stress</span>
           </button>
 
-          <!-- Nút 3: SOS Khẩn Cấp 111 -->
-          <button onclick="openModal('emergencyModal')" class="group p-6 rounded-3xl bg-gradient-to-b from-rose-500 to-red-600 text-white shadow-xl shadow-rose-200 hover:shadow-2xl hover:scale-103 active:scale-98 transition-all flex flex-col items-center justify-center">
-            <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-              <i data-lucide="phone-call" class="w-7 h-7 text-white animate-bounce"></i>
+          <!-- Nút 3: Kỹ Năng Sống Học Đường (thay vì nút SOS 111 phía trên vì ở dưới đã có nút nổi) -->
+          <button onclick="switchTab('skills')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
+            <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-teal-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+              <i data-lucide="sparkles" class="w-7 h-7 text-white drop-shadow"></i>
             </div>
-            <span class="text-base sm:text-lg font-black">SOS Khẩn Cấp 111</span>
-            <span class="text-xs text-rose-100 mt-1 font-medium">Tổng đài Quốc gia Bảo vệ Trẻ em miễn phí</span>
+            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Kỹ Năng Sống Học Đường</span>
+            <span class="text-xs text-emerald-100 mt-1.5 font-medium text-center">Cẩm nang ứng phó áp lực, tình bạn & cảm xúc</span>
           </button>
         </div>
 
-        <!-- 4 Khối chức năng nổi bật -->
+        <!-- 4 Khối chức năng nổi bật - Thiết kế nổi 3D với màu sắc tươi sáng -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-          <div onclick="switchTab('emotion')" class="cursor-pointer p-5 rounded-3xl glass-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
-              <i data-lucide="smile" class="w-5 h-5"></i>
+          <div onclick="switchTab('emotion')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
+              <i data-lucide="smile" class="w-5 h-5 fill-white/20"></i>
             </div>
-            <h3 class="font-extrabold text-slate-800 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
-            <p className="text-xs text-slate-500">Điểm danh tâm trạng mỗi ngày với emoji, ghi nhật ký ẩn danh an toàn.</p>
+            <h3 class="font-black text-amber-950 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
+            <p class="text-xs text-amber-900/70 leading-relaxed">Điểm danh tâm trạng mỗi ngày với emoji, ghi nhật ký ẩn danh an toàn.</p>
           </div>
 
-          <div onclick="switchTab('bully')" class="cursor-pointer p-5 rounded-3xl glass-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
+          <div onclick="switchTab('bully')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
               <i data-lucide="shield-alert" class="w-5 h-5"></i>
             </div>
-            <h3 class="font-extrabold text-slate-800 text-sm mb-1">Chống Bắt Nạt</h3>
-            <p className="text-xs text-slate-500">Hòm thư báo cáo bạo lực học đường bảo mật 100% để thầy cô can thiệp ngay.</p>
+            <h3 class="font-black text-rose-950 text-sm mb-1">Phòng Chống Bắt Nạt</h3>
+            <p class="text-xs text-rose-900/70 leading-relaxed">Hòm thư báo cáo bạo lực học đường bảo mật 100% để thầy cô can thiệp ngay.</p>
           </div>
 
-          <div onclick="switchTab('appointment')" class="cursor-pointer p-5 rounded-3xl glass-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center mb-3">
+          <div onclick="switchTab('appointment')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-teal-50/90 to-emerald-50/80 backdrop-blur-xl border border-teal-200/80 shadow-md shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-teal-100">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center mb-3 shadow-md shadow-teal-300">
               <i data-lucide="calendar" class="w-5 h-5"></i>
             </div>
-            <h3 class="font-extrabold text-slate-800 text-sm mb-1">Đặt Lịch Chuyên Gia</h3>
-            <p className="text-xs text-slate-500">Gặp Thầy Nguyễn Tuấn Anh hoặc Cô Nguyễn Thị Thùy Trang tại Phòng 204.</p>
+            <h3 class="font-black text-teal-950 text-sm mb-1">Đặt Lịch Giáo Viên</h3>
+            <p class="text-xs text-teal-900/70 leading-relaxed">Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692 (TRƯỜNG TH&THCS PHƯỚC HƯNG).</p>
           </div>
 
-          <div onclick="switchTab('library')" class="cursor-pointer p-5 rounded-3xl glass-card shadow-md hover:shadow-xl hover:-translate-y-1 transition-all">
-            <div class="w-10 h-10 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mb-3">
-              <i data-lucide="book-open" class="w-5 h-5"></i>
+          <div onclick="switchTab('skills')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100">
+            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
+              <i data-lucide="sparkles" class="w-5 h-5"></i>
             </div>
-            <h3 class="font-extrabold text-slate-800 text-sm mb-1">Thư Viện Kỹ Năng</h3>
-            <p className="text-xs text-slate-500">Bí quyết giải tỏa căng thẳng trước phòng thi và kỹ năng kết nối bạn bè.</p>
+            <h3 class="font-black text-purple-950 text-sm mb-1">Cẩm Nang Kỹ Năng Sống</h3>
+            <p class="text-xs text-purple-900/70 leading-relaxed">Kho cẩm nang kiểm soát lo âu, bí quyết giải tỏa áp lực thi cử và xây dựng tình bạn.</p>
           </div>
         </div>
 
@@ -372,8 +372,8 @@
             <i data-lucide="shield-alert" class="w-6 h-6"></i>
           </div>
           <div>
-            <h2 class="text-xl font-black text-rose-700">Hòm Thư Báo Cáo Bạo Lực Học Đường</h2>
-            <p class="text-xs text-slate-500">Bảo mật danh tính tuyệt đối • Ban Giám Hiệu can thiệp ngay lập tức</p>
+            <h2 class="text-xl font-black text-rose-700">Hòm Thư Phòng Chống Bắt Nạt Học Đường</h2>
+            <p class="text-xs text-slate-500">TRƯỜNG TH&THCS PHƯỚC HƯNG • Bảo mật danh tính tuyệt đối • Can thiệp ngay lập tức</p>
           </div>
         </div>
 
@@ -448,34 +448,22 @@
       </div>
     </section>
 
-    <!-- TAB 8: ĐẶT LỊCH TƯ VẤN -->
+    <!-- TAB 8: ĐẶT LỊCH GIÁO VIÊN -->
     <section id="tab-appointment" class="tab-pane hidden max-w-4xl mx-auto py-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <!-- Danh sách chuyên gia -->
         <div class="lg:col-span-5 space-y-4">
-          <div class="glass-card p-5 rounded-3xl shadow-md border-teal-200">
-            <div class="flex items-center gap-3 mb-2">
-              <span class="text-3xl">👨‍🏫</span>
-              <div>
-                <h3 class="font-extrabold text-sm text-slate-800">ThS. Nguyễn Tuấn Anh</h3>
-                <p class="text-xs text-teal-700 font-bold">Chuyên gia Tâm lý Học đường (THCS)</p>
-              </div>
-            </div>
-            <p class="text-xs text-slate-500 leading-relaxed mb-2">Tư vấn áp lực thi cử, định hướng cảm xúc tuổi dậy thì, bất đồng ý kiến với gia đình.</p>
-            <div class="text-[11px] text-slate-400 font-medium">📍 Phòng Tư vấn Tâm lý 204 (Tầng 2 Nhà A)</div>
-          </div>
-
           <div class="glass-card p-5 rounded-3xl shadow-md border-purple-200">
             <div class="flex items-center gap-3 mb-2">
               <span class="text-3xl">👩‍🏫</span>
               <div>
                 <h3 class="font-extrabold text-sm text-slate-800">Cô Nguyễn Thị Thùy Trang</h3>
-                <p class="text-xs text-purple-700 font-bold">Chuyên viên Tham vấn (Tiểu học & THCS)</p>
+                <p class="text-xs text-purple-700 font-bold">Giáo viên Tham vấn Tâm lý (TRƯỜNG TH&THCS PHƯỚC HƯNG)</p>
               </div>
             </div>
-            <p class="text-xs text-slate-500 leading-relaxed mb-2">Lắng nghe nỗi sợ hãi, bẽn lẽn, hỗ trợ xây dựng sự tự tin và kỹ năng hòa nhập bạn bè.</p>
-            <div class="text-[11px] text-slate-400 font-medium">📍 Phòng Hỗ trợ Cảm xúc 102 (Nhà Thư viện)</div>
+            <p class="text-xs text-slate-500 leading-relaxed mb-2">Lắng nghe nỗi sợ hãi, bẽn lẽn, hỗ trợ xây dựng sự tự tin và kỹ năng hòa nhập bạn bè tại Phòng 692.</p>
+            <div class="text-[11px] text-slate-400 font-medium">📍 Phòng 692 (Tầng 6 Nhà Đa Năng - TRƯỜNG TH&THCS PHƯỚC HƯNG)</div>
           </div>
         </div>
 
@@ -483,16 +471,15 @@
         <div class="lg:col-span-7 glass-card p-6 rounded-3xl shadow-xl">
           <h2 class="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
             <i data-lucide="calendar" class="w-5 h-5 text-teal-600"></i>
-            <span>Đăng Ký Lịch Gặp Chuyên Gia</span>
+            <span>Đăng Ký Đặt Lịch Giáo Viên - TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
           </h2>
           <p class="text-xs text-slate-500 mb-4">Hoàn toàn riêng tư và bảo mật thông tin học sinh.</p>
 
           <form id="appointmentForm" onsubmit="handleBookAppoint(event)" class="space-y-3.5">
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Chuyên gia phụ trách:</label>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Giáo viên / Chuyên gia phụ trách:</label>
               <select id="appointCounselor" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white outline-none">
-                <option value="ThS. Nguyễn Tuấn Anh">ThS. Nguyễn Tuấn Anh (THCS - Phòng 204)</option>
-                <option value="Cô Nguyễn Thị Thùy Trang">Cô Nguyễn Thị Thùy Trang (Tiểu học - Phòng 102)</option>
+                <option value="Cô Nguyễn Thị Thùy Trang (Phòng 692)">Cô Nguyễn Thị Thùy Trang (Phòng 692 - TRƯỜNG TH&THCS PHƯỚC HƯNG)</option>
               </select>
             </div>
 
@@ -523,7 +510,7 @@
             </div>
 
             <button type="submit" class="w-full py-3 bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:scale-101 active:scale-98 transition">
-              XÁC NHẬN ĐẶT LỊCH HẸN
+              XÁC NHẬN ĐẶT LỊCH GIÁO VIÊN
             </button>
           </form>
           <div id="appointAlert" class="hidden mt-3 p-3 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200 text-center"></div>
@@ -534,6 +521,20 @@
 
     <!-- TAB 9: QUẢN TRỊ (DASHBOARD) -->
     <section id="tab-dashboard" class="tab-pane hidden max-w-4xl mx-auto py-6">
+      <!-- Banner nhắc nhở vai trò -->
+      <div class="mb-6 p-4 rounded-2xl bg-indigo-50/90 border border-indigo-200 text-xs text-indigo-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div class="flex items-start gap-2.5">
+          <i data-lucide="lock" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+          <div>
+            <span class="font-bold block text-indigo-900">Khu Vực Quản Trị Hệ Thống:</span>
+            <span>Chỉ dành riêng cho Ban Giám Hiệu và Cô Nguyễn Thị Thùy Trang. Tất cả học sinh, phụ huynh và khách sử dụng toàn bộ tính năng khác mà <strong>không cần đăng nhập</strong>.</span>
+          </div>
+        </div>
+        <button onclick="switchTab('login')" class="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shrink-0 shadow-xs">
+          Đăng nhập Quản Trị
+        </button>
+      </div>
+
       <div class="glass-card p-6 rounded-3xl shadow-xl mb-6 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
@@ -569,27 +570,59 @@
       </div>
     </section>
 
-    <!-- TAB 10: ĐĂNG NHẬP (LOGIN & DEMO ACCOUNTS) -->
+    <!-- TAB 10: ĐĂNG NHẬP (DÀNH RIÊNG CHO QUẢN TRỊ & CÔ THÙY TRANG) -->
     <section id="tab-login" class="tab-pane hidden max-w-4xl mx-auto py-8">
+      <!-- Thông báo: Học sinh & phụ huynh không cần đăng nhập -->
+      <div class="mb-8 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-start gap-3.5">
+          <div class="w-11 h-11 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <i data-lucide="heart" class="w-5 h-5 fill-white"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-sm sm:text-base text-emerald-950 flex items-center gap-2">
+              <span>Dành Cho Học Sinh, Quý Phụ Huynh & Khách Thăm</span>
+              <span class="text-[10px] bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full font-bold">
+                Không cần đăng nhập
+              </span>
+            </h3>
+            <p class="text-xs sm:text-sm text-emerald-800 mt-1 leading-relaxed">
+              Tất cả mọi người vào Cổng tư vấn đều có thể sử dụng toàn bộ tính năng (Nhật ký cảm xúc, Trợ lý AI, Báo cáo bắt nạt, Thư viện, Đặt lịch giáo viên, Góc chia sẻ) mà <strong>KHÔNG CẦN ĐĂNG NHẬP</strong>.
+            </p>
+          </div>
+        </div>
+        <button
+          onclick="switchTab('home')"
+          class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition hover:scale-105 shrink-0"
+        >
+          Vào trang chủ ngay
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
         
         <!-- Form login -->
         <div class="md:col-span-6 glass-card p-6 sm:p-8 rounded-3xl shadow-xl">
-          <h2 class="text-xl font-black text-slate-800 mb-1 text-center">Đăng Nhập Tài Khoản</h2>
-          <p class="text-xs text-slate-500 mb-6 text-center">Đồng bộ dữ liệu trên Firestore (hinh123-fd678)</p>
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 to-purple-600 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
+            <i data-lucide="lock" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-lg sm:text-xl font-black text-slate-800 mb-1 text-center">Đăng Nhập Quản Trị & Cô Thùy Trang</h2>
+          <p class="text-xs text-slate-500 mb-6 text-center">Dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)</p>
 
           <form onsubmit="handleManualLogin(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email:</label>
-              <input type="email" id="loginEmail" required placeholder="tuananh.nguyen@school.edu.vn" class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none">
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Email / Tài khoản:</label>
+              <input type="email" id="loginEmail" required placeholder="thuytrang.nguyen@school.edu.vn" class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none">
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mật khẩu:</label>
               <input type="password" id="loginPass" required placeholder="••••••••" class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none">
             </div>
-            <button type="submit" class="w-full py-3 bg-indigo-600 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:bg-indigo-700 transition">
-              Đăng Nhập
+            <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-xs sm:text-sm rounded-2xl shadow-lg hover:from-indigo-700 hover:to-purple-700 transition">
+              Đăng Nhập Hệ Thống
             </button>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100 text-[11px] text-slate-500 text-center leading-relaxed">
+              Tài khoản được cấp độc quyền bởi Trường TH&THCS Phước Hưng cho BGH và Cô Trang.
+            </div>
           </form>
         </div>
 
@@ -597,11 +630,11 @@
         <div class="md:col-span-6 glass-card p-6 sm:p-8 rounded-3xl shadow-xl space-y-3">
           <h3 class="font-black text-sm text-slate-800 mb-1 flex items-center gap-1.5">
             <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600"></i>
-            <span>Tài Khoản Mẫu Trải Nghiệm Nhanh</span>
+            <span>Đăng Nhập Nhanh 1-Click</span>
           </h3>
-          <p class="text-xs text-slate-500 mb-2">Bấm "Vào ngay" để đăng nhập lập tức:</p>
+          <p class="text-xs text-slate-500 mb-2">Bấm "Vào ngay" để đăng nhập với quyền Cô Thùy Trang hoặc Quản trị:</p>
 
-          <div class="space-y-2 text-xs" id="demoAccountsList">
+          <div class="space-y-3 text-xs" id="demoAccountsList">
             <!-- Injected via JS -->
           </div>
         </div>
@@ -670,19 +703,376 @@
   </div>
 
   <!-- ========================================================= -->
-  <!-- 5. FOOTER                                                 -->
+  <!-- 5. FOOTER & CALLOUT CAM KẾT                               -->
   <!-- ========================================================= -->
-  <footer class="mt-auto glass border-t border-white/60 py-6 text-slate-500 text-xs">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-      <div>
-        <p class="font-bold text-slate-800 text-sm">Hệ Thống Tham Vấn Tâm Lý Học Đường</p>
-        <p class="text-[11px] text-slate-400">Đồng hành cùng học sinh vững vàng cảm xúc • Nền tảng Firebase hinh123-fd678</p>
+  <footer class="mt-auto border-t border-indigo-100/80 bg-white/75 backdrop-blur-2xl pt-12 pb-8 text-slate-600 text-xs shadow-inner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      
+      <!-- 1. KHỐI CAM KẾT & LỜI NHẮN NHỦ ĐẦU CHÂN TRANG (Callout Banner) -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 p-8 sm:p-10 text-white shadow-2xl shadow-indigo-300/40 mb-12">
+        <div class="relative z-10 max-w-3xl">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-white text-xs font-bold tracking-wide mb-4 shadow-xs">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-300"></i>
+            <span>Cam kết Trường học An toàn - Thân thiện - Tôn trọng</span>
+          </div>
+
+          <h2 class="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-3">
+            Mỗi học sinh đều là một điều kỳ diệu đáng được trân trọng
+          </h2>
+
+          <p class="text-xs sm:text-sm text-indigo-100 leading-relaxed font-normal mb-6 max-w-2xl">
+            Dù em đang gặp phải bất cứ khó khăn nào trong bài vở, áp lực điểm số, xích mích bạn bè hay chuyện gia đình, hãy nhớ rằng cánh cửa Phòng Tư vấn Trường TH&THCS Phước Hưng luôn rộng mở đón chào em.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              onclick="switchTab('share')"
+              class="px-5 py-2.5 rounded-2xl bg-white text-indigo-700 hover:bg-indigo-50 font-black text-xs shadow-lg hover:scale-105 active:scale-95 transition flex items-center gap-2"
+            >
+              <i data-lucide="message-square" class="w-4 h-4 text-indigo-600"></i>
+              <span>Chia sẻ tâm sự ngay</span>
+            </button>
+
+            <button
+              onclick="openModal('lookupModal')"
+              class="px-5 py-2.5 rounded-2xl bg-white/20 hover:bg-white/30 backdrop-blur-md text-white border border-white/30 font-bold text-xs shadow-md hover:scale-105 active:scale-95 transition flex items-center gap-2"
+            >
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <span>Tra cứu mã phiếu</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="flex items-center gap-3 text-xs">
-        <span class="bg-rose-50 text-rose-700 px-3 py-1 rounded-xl font-bold border border-rose-200">Hotline 111 (24/7 Miễn phí)</span>
+
+      <!-- 2. BỐ CỤC 4 CỘT CHÍNH CỦA CHÂN TRANG -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 pb-10 border-b border-slate-200/80">
+        
+        <!-- Cột 1: Cổng tư vấn tâm lý (4 cols) -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="flex items-center gap-2.5">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-md shadow-indigo-200 shrink-0">
+              <i data-lucide="heart" class="w-5 h-5 fill-white"></i>
+            </div>
+            <div>
+              <h3 class="font-black text-slate-800 text-sm leading-snug">
+                Cổng tư vấn tâm lý
+              </h3>
+              <p class="text-xs font-extrabold text-indigo-700 tracking-wide">
+                Trường TH&THCS Phước Hưng
+              </p>
+            </div>
+          </div>
+
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Môi trường lắng nghe an toàn, thân thiện và thấu cảm dành cho học sinh Tiểu học, THCS, quý phụ huynh và thầy cô giáo.
+          </p>
+
+          <div class="space-y-2 text-xs text-slate-600 pt-1">
+            <div class="flex items-start gap-2">
+              <i data-lucide="map-pin" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+              <span>
+                <strong>Địa chỉ:</strong> Ấp Phước Khánh, Nhơn Hội, An Giang
+              </span>
+            </div>
+            <div class="flex items-start gap-2">
+              <i data-lucide="home" class="w-4 h-4 text-purple-600 shrink-0 mt-0.5"></i>
+              <span>
+                <strong>Phòng Tư vấn Tâm lý học đường:</strong> Gặp Cô Nguyễn Thị Thùy Trang (Phòng 692)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột 2: Thông tin liên hệ (3 cols) -->
+        <div class="lg:col-span-3 space-y-3.5">
+          <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-4 h-4 text-indigo-600"></i>
+            <span>Thông tin liên hệ</span>
+          </h4>
+
+          <div class="space-y-3 text-xs text-slate-600">
+            <div class="bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+              <span class="font-bold text-slate-800 block mb-0.5">Thời gian tiếp đón:</span>
+              <p class="text-[11px] text-slate-500 leading-relaxed">
+                Thứ Hai - Thứ Sáu:<br />
+                <strong class="text-indigo-700">07:00 - 11:30</strong> | <strong class="text-indigo-700">13:30 - 17:00</strong>
+              </p>
+            </div>
+
+            <div>
+              <span class="font-bold text-slate-800 flex items-center gap-1.5 mb-0.5">
+                <i data-lucide="mail" class="w-3.5 h-3.5 text-indigo-600"></i>
+                <span>Hộp thư điện tử:</span>
+              </span>
+              <a
+                href="mailto:c2phuochungap_trang@angiang.edu.vn"
+                class="text-indigo-600 hover:underline font-mono text-[11px] break-all block"
+              >
+                c2phuochungap_trang@angiang.edu.vn
+              </a>
+            </div>
+
+            <div>
+              <span class="font-bold text-slate-800 flex items-center gap-1.5 mb-0.5">
+                <i data-lucide="inbox" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Hòm thư tâm sự trực tiếp:</span>
+              </span>
+              <p class="text-[11px] text-slate-500">
+                Đặt trước cửa Phòng Tư vấn (Tầng 2)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột 3: Hướng dẫn & Quyền riêng tư (3 cols) -->
+        <div class="lg:col-span-3 space-y-3.5">
+          <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+            <i data-lucide="shield" class="w-4 h-4 text-indigo-600"></i>
+            <span>Hướng dẫn & Quyền riêng tư</span>
+          </h4>
+
+          <ul class="space-y-2 text-xs">
+            <li>
+              <button
+                onclick="openModal('lookupModal')"
+                class="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+              >
+                <span class="text-indigo-500 font-bold">•</span>
+                <span>Tra cứu trạng thái phiếu tâm sự</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onclick="openModal('anonGuideModal')"
+                class="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+              >
+                <span class="text-indigo-500 font-bold">•</span>
+                <span>Quy trình gửi thư ẩn danh an toàn</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onclick="openModal('bookingGuideModal')"
+                class="text-slate-600 hover:text-indigo-600 hover:underline transition text-left flex items-center gap-1.5"
+              >
+                <span class="text-indigo-500 font-bold">•</span>
+                <span>Quy định đặt lịch gặp thầy cô</span>
+              </button>
+            </li>
+          </ul>
+
+          <div class="bg-amber-50/80 border border-amber-200/80 p-3 rounded-2xl text-[11px] text-amber-900 leading-relaxed">
+            <strong class="block font-bold text-amber-950 mb-1 flex items-center gap-1">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-amber-700"></i>
+              <span>Cam kết bảo mật:</span>
+            </strong>
+            Nội dung tư vấn được bảo mật. Khi có nguy cơ đe dọa an toàn tính mạng, nhà trường sẽ kích hoạt quy trình bảo vệ học sinh theo quy định.
+          </div>
+        </div>
+
+        <!-- Cột 4: Kênh khẩn cấp & Cơ quan (2 cols) -->
+        <div class="lg:col-span-2 space-y-3">
+          <h4 class="font-black text-slate-800 text-xs uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
+            <i data-lucide="phone-call" class="w-4 h-4 text-rose-600"></i>
+            <span>Kênh khẩn cấp</span>
+          </h4>
+
+          <!-- Tổng đài 111 -->
+          <a
+            href="tel:111"
+            class="block p-3 rounded-2xl bg-gradient-to-br from-rose-500 to-red-600 text-white shadow-md hover:scale-102 transition group"
+          >
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-black text-base">Tổng đài Trẻ em 111</span>
+              <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">24/7 Miễn phí</span>
+            </div>
+            <p class="text-[10px] text-rose-100 leading-tight">
+              Đường dây nóng Quốc gia Bảo vệ Trẻ em
+            </p>
+          </a>
+
+          <!-- Công an 113 -->
+          <a
+            href="tel:113"
+            class="block p-3 rounded-2xl bg-slate-900 text-white shadow-md hover:scale-102 transition group"
+          >
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="font-black text-base text-amber-400">Công an (Khẩn cấp) 113</span>
+            </div>
+            <p class="text-[10px] text-slate-300 leading-tight">
+              Khi gặp bạo lực hoặc nguy cơ đe dọa
+            </p>
+          </a>
+
+          <!-- Nút Xem danh bạ khẩn cấp -->
+          <button
+            onclick="openModal('directoryModal')"
+            class="w-full py-2.5 px-3 rounded-2xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] shadow-2xs hover:border-indigo-300 transition text-center"
+          >
+            Xem danh bạ khẩn cấp nhà trường
+          </button>
+        </div>
+
       </div>
+
+      <!-- 3. DÒNG BẢN QUYỀN VÀ KHẨU HIỆU DƯỚI CÙNG -->
+      <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[11px] text-slate-500">
+        <div>
+          <p class="font-semibold text-slate-700">
+            © 2026 Cổng tư vấn tâm lý học đường – Trường TH&THCS Phước Hưng. Tất cả quyền được bảo lưu.
+          </p>
+        </div>
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 font-bold text-[11px]">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-indigo-600"></i>
+          <span>Vì một trường học an toàn, hạnh phúc và thân thiện</span>
+        </div>
+      </div>
+
     </div>
   </footer>
+
+  <!-- Nút Floating SOS 111 góc phải màn hình -->
+  <div class="fixed bottom-6 right-6 z-40">
+    <button onclick="openModal('emergencyModal')" class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white rounded-full font-black text-xs shadow-xl shadow-rose-300 hover:scale-105 active:scale-95 transition-all">
+      <i data-lucide="phone-call" class="w-4 h-4 animate-bounce"></i>
+      <span>SOS Khẩn Cấp 111</span>
+    </button>
+  </div>
+
+  <!-- MODAL: TRA CỨU MÃ PHIẾU -->
+  <div id="lookupModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-800 text-base">Tra Cứu Mã Phiếu Bảo Mật</h3>
+            <p class="text-xs text-slate-500">Nhập mã hồ sơ (ví dụ: SOS-BN-xxxxxx) để xem trạng thái</p>
+          </div>
+        </div>
+        <button onclick="closeModal('lookupModal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="lookupCodeInput" placeholder="Nhập mã phiếu (VD: SOS-BN-123456)..." class="flex-1 text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none uppercase font-mono">
+        <button onclick="handleStandaloneLookup()" class="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md">
+          Kiểm tra
+        </button>
+      </div>
+
+      <div id="lookupResultArea"></div>
+
+      <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+        <button onclick="closeModal('lookupModal')" class="text-xs text-slate-400 hover:text-slate-600">
+          Đóng cửa sổ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DANH BẠ KHẨN CẤP NHÀ TRƯỜNG -->
+  <div id="directoryModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+            <i data-lucide="phone-call" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-black text-slate-800 text-base">Danh Bạ Khẩn Cấp Nhà Trường</h3>
+            <p class="text-xs text-slate-500">TRƯỜNG TH&THCS PHƯỚC HƯNG (An Giang)</p>
+          </div>
+        </div>
+        <button onclick="closeModal('directoryModal')" class="p-2 rounded-xl text-slate-400 hover:text-slate-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-rose-900">Tổng đài Quốc gia Bảo vệ Trẻ em</div>
+            <div class="text-[11px] text-rose-700">Miễn cước 24/7 - Hỗ trợ khẩn cấp toàn quốc</div>
+          </div>
+          <a href="tel:111" class="px-3 py-1.5 rounded-xl bg-rose-600 text-white font-extrabold text-xs">
+            Gọi 111
+          </a>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-indigo-900">Phòng Tư Vấn Tâm Lý - Cô Thùy Trang</div>
+            <div class="text-[11px] text-indigo-700">Phòng 692 (Tầng 6 Nhà Đa Năng)</div>
+          </div>
+          <span class="font-mono font-bold text-indigo-700 bg-white px-2.5 py-1 rounded-lg border border-indigo-200">
+            Phòng 692
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-slate-900">Ban Giám Hiệu Trường TH&THCS Phước Hưng</div>
+            <div class="text-[11px] text-slate-500">Ấp Phước Khánh, Nhơn Hội, An Giang</div>
+          </div>
+          <span class="text-[11px] font-bold text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+            Văn phòng BGH
+          </span>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+          <div>
+            <div class="font-bold text-amber-900">Công an Địa phương (Khẩn cấp)</div>
+            <div class="text-[11px] text-amber-700">Can thiệp bạo lực & mất an ninh trật tự</div>
+          </div>
+          <a href="tel:113" class="px-3 py-1.5 rounded-xl bg-slate-900 text-white font-extrabold text-xs">
+            Gọi 113
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-5 pt-3 border-t border-slate-100 text-center">
+        <button onclick="closeModal('directoryModal')" class="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold text-xs text-slate-700 transition">
+          Đã hiểu và đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: HƯỚNG DẪN ẨN DANH -->
+  <div id="anonGuideModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-black text-slate-800 text-base">Quy Trình Gửi Thư Ẩn Danh An Toàn</h3>
+        <button onclick="closeModal('anonGuideModal')" class="p-2 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+        <p><strong>1. Tuyệt đối không lưu vết:</strong> Em có thể trút bỏ tâm sự hoặc tố giác bạo lực mà không cần đăng nhập hay để lại số điện thoại.</p>
+        <p><strong>2. Mã số bí mật:</strong> Hệ thống cấp mã hồ sơ (ví dụ: SOS-BN-xxxxxx) ngay sau khi gửi để em tự tra cứu tiến độ.</p>
+        <p><strong>3. Kênh bảo mật nội bộ:</strong> Chỉ Ban Giám Hiệu và Cô Thùy Trang (Phòng 692) tiếp nhận xử lý an toàn.</p>
+      </div>
+      <button onclick="closeModal('anonGuideModal')" class="w-full mt-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl">Đóng</button>
+    </div>
+  </div>
+
+  <!-- MODAL: QUY ĐỊNH ĐẶT LỊCH -->
+  <div id="bookingGuideModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-black text-slate-800 text-base">Quy Định Đặt Lịch Gặp Thầy Cô</h3>
+        <button onclick="closeModal('bookingGuideModal')" class="p-2 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="space-y-2.5 text-xs text-slate-600 leading-relaxed">
+        <p><strong>1. Thời gian tiếp đón:</strong> Thứ Hai - Thứ Sáu (07:00 - 11:30 | 13:30 - 17:00).</p>
+        <p><strong>2. Địa điểm:</strong> Phòng 692 (Tầng 6 Nhà Đa Năng - TRƯỜNG TH&THCS PHƯỚC HƯNG).</p>
+        <p><strong>3. Tôn trọng tuyệt đối:</strong> Thầy cô lắng nghe thấu cảm, không phán xét và bảo mật 100% cuộc trao đổi.</p>
+      </div>
+      <button onclick="closeModal('bookingGuideModal')" class="w-full mt-4 py-2 bg-indigo-600 text-white font-bold text-xs rounded-xl">Đóng</button>
+    </div>
+  </div>
 
   <!-- ========================================================= -->
   <!-- 6. JAVASCRIPT XỬ LÝ (TABS, MOCK AI, FIREBASE, DATA)       -->
@@ -729,11 +1119,8 @@
     ];
 
     const DEMO_ACCOUNTS = [
-      { name: 'Em Trần Hoài An (THCS)', email: 'an.tran@school.edu.vn', pass: 'demo123', role: 'Học sinh' },
-      { name: 'Em Nguyễn Thanh Bình (Tiểu học)', email: 'binh.nguyen@school.edu.vn', pass: 'demo123', role: 'Học sinh' },
-      { name: 'ThS. Nguyễn Tuấn Anh (THCS)', email: 'tuananh.nguyen@school.edu.vn', pass: 'demo123', role: 'Tư vấn viên' },
-      { name: 'Cô Nguyễn Thị Thùy Trang (Tiểu học)', email: 'thuytrang.nguyen@school.edu.vn', pass: 'demo123', role: 'Tư vấn viên' },
-      { name: 'Thầy Minh (Ban Giám Hiệu)', email: 'quantri.minh@school.edu.vn', pass: 'admin123', role: 'Quản trị viên' }
+      { name: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)', email: 'thuytrang.nguyen@school.edu.vn', pass: 'demo123', role: 'Giáo viên tham vấn', badge: 'COUNSELOR' },
+      { name: 'Ban Giám Hiệu / Quản trị viên', email: 'quantri.minh@school.edu.vn', pass: 'admin123', role: 'Quản trị viên', badge: 'ADMIN' }
     ];
 
     const ARTICLES = [
@@ -786,17 +1173,20 @@
     // C. Chuyển Tab & Modal
     // -------------------------------------------------------------
     function switchTab(tabId) {
+      if (tabId === 'skills') tabId = 'library';
       currentTab = tabId;
       document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
       const activeEl = document.getElementById(`tab-${tabId}`);
       if (activeEl) activeEl.classList.remove('hidden');
 
-      // Update navbar styling
+      // Update navbar styling - raised 3D
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        if (btn.getAttribute('data-tab') === tabId) {
-          btn.className = 'nav-btn px-3 py-1.5 rounded-xl transition-all bg-indigo-600 text-white font-bold shadow-xs';
+        const btnTab = btn.getAttribute('data-tab');
+        const isMatch = btnTab === tabId || (tabId === 'library' && btnTab === 'skills');
+        if (isMatch) {
+          btn.className = 'nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white font-black shadow-md shadow-indigo-300/70 -translate-y-0.5 ring-2 ring-indigo-200';
         } else {
-          btn.className = 'nav-btn px-3 py-1.5 rounded-xl transition-all text-slate-600 hover:bg-indigo-50 hover:text-indigo-600';
+          btn.className = 'nav-btn flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl whitespace-nowrap transition-all duration-200 shrink-0 bg-white/85 text-slate-700 hover:text-indigo-700 hover:bg-white border border-indigo-100/80 shadow-xs hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 font-bold';
         }
       });
 
@@ -952,12 +1342,16 @@
       const container = document.getElementById('demoAccountsList');
       if (!container) return;
       container.innerHTML = DEMO_ACCOUNTS.map(acc => `
-        <div class="p-3 bg-white rounded-2xl border border-slate-200 flex items-center justify-between">
+        <div class="p-4 bg-white rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-xs transition flex items-center justify-between gap-3">
           <div>
-            <div class="font-bold text-slate-800">${acc.name}</div>
-            <div class="text-[10px] text-slate-400 font-mono">${acc.email} • Pass: ${acc.pass}</div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-xs text-slate-800">${acc.name}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.badge === 'ADMIN' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-purple-100 text-purple-800 border border-purple-200'}">${acc.badge}</span>
+            </div>
+            <div class="text-[11px] text-slate-600 font-medium mt-0.5">${acc.role}</div>
+            <div class="text-[10px] text-slate-400 font-mono mt-0.5">${acc.email} • Pass: ${acc.pass}</div>
           </div>
-          <button onclick="loginDemo('${acc.email}', '${acc.pass}', '${acc.name}')" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-xl font-bold transition">
+          <button onclick="loginDemo('${acc.email}', '${acc.pass}', '${acc.name}')" class="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-600 hover:text-white text-indigo-700 rounded-xl font-bold text-xs transition shadow-2xs shrink-0">
             Vào ngay
           </button>
         </div>
@@ -1085,6 +1479,35 @@
       setTimeout(() => alertEl.classList.add('hidden'), 4000);
     }
 
+    function handleStandaloneLookup() {
+      const codeInput = document.getElementById('lookupCodeInput');
+      const resultArea = document.getElementById('lookupResultArea');
+      if (!codeInput || !resultArea) return;
+      const code = codeInput.value.trim().toUpperCase();
+      if (!code) return;
+
+      const found = bullyReports.find(b => b.code && b.code.toUpperCase() === code);
+      if (found) {
+        resultArea.innerHTML = `
+          <div class="p-4 rounded-2xl bg-indigo-50 border border-indigo-200 space-y-1.5 text-xs text-left">
+            <div class="flex items-center justify-between">
+              <span class="font-mono font-black text-indigo-900 bg-white px-2 py-0.5 rounded border border-indigo-200">${found.code}</span>
+              <span class="px-2 py-0.5 rounded-full font-bold text-[10px] bg-emerald-100 text-emerald-800">${found.status || 'Chờ tiếp nhận khẩn cấp'}</span>
+            </div>
+            <p class="text-slate-700"><strong>Hình thức:</strong> ${found.type || 'Báo cáo hỗ trợ'}</p>
+            <p class="text-slate-700"><strong>Lớp / Địa điểm:</strong> ${found.location || 'Chưa rõ'}</p>
+            <p class="text-[11px] text-emerald-800 font-medium pt-1 border-t border-indigo-200">✓ Hồ sơ đã được lưu trữ bảo mật tại trường TH&THCS Phước Hưng.</p>
+          </div>
+        `;
+      } else {
+        resultArea.innerHTML = `
+          <div class="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs text-center">
+            Không tìm thấy mã phiếu "${code}". Vui lòng kiểm tra lại chính xác mã số được cấp.
+          </div>
+        `;
+      }
+    }
+
     function saveItem(title, content) {
       savedItems.unshift({ title, content });
       localStorage.setItem('tamly_saved', JSON.stringify(savedItems));
@@ -1182,8 +1605,9 @@
         `;
       } else {
         area.innerHTML = `
-          <button onclick="switchTab('login')" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all hover:scale-105">
-            Đăng nhập
+          <button onclick="switchTab('login')" title="Dành cho Quản trị & Cô Nguyễn Thị Thùy Trang" class="px-3.5 sm:px-4 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-200 transition-all hover:scale-105 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            <span>Đăng nhập (Quản trị & Cô Trang)</span>
           </button>
         `;
       }

@@ -25,74 +25,24 @@ export const Login: React.FC = () => {
 
   const sampleAccounts = [
     {
-      role: 'STUDENT',
-      roleLabel: 'Học sinh THCS',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fullName: 'Em Trần Hoài An',
-      username: 'hocsinh.an',
-      altUids: 'usr-student-1',
-      password: 'demo123',
-      description: 'Gửi phiếu hỗ trợ, chat AI tư vấn, làm trắc nghiệm cảm xúc',
-    },
-    {
-      role: 'STUDENT',
-      roleLabel: 'Học sinh Tiểu học',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      fullName: 'Em Nguyễn Thanh Bình',
-      username: 'hocsinh.binh',
-      altUids: 'usr-student-2',
-      password: 'demo123',
-      description: 'Giao diện thân thiện khối Tiểu học, chia sẻ cảm xúc với thầy cô',
-    },
-    {
       role: 'COUNSELOR',
-      roleLabel: 'Tư vấn viên THCS',
-      badgeColor: 'bg-sky-50 text-sky-700 border-sky-200',
-      fullName: 'ThS. Tâm lý Nguyễn Tuấn Anh',
-      username: 'tuvan.tuananh',
-      altUids: 'usr-counselor-1',
-      password: 'demo123',
-      description: 'Tiếp nhận ca tư vấn, ghi chú nghiệp vụ bảo mật, xếp lịch hẹn',
-    },
-    {
-      role: 'COUNSELOR',
-      roleLabel: 'Tư vấn viên Tiểu học',
-      badgeColor: 'bg-sky-50 text-sky-700 border-sky-200',
+      roleLabel: 'Giáo viên Tham vấn (Phòng 692)',
+      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
       fullName: 'Cô Nguyễn Thị Thùy Trang',
       username: 'tuvan.thuytrang',
-      altUids: 'usr-counselor-2',
+      altUids: 'thuytrang.nguyen@school.edu.vn',
       password: 'demo123',
-      description: 'Phụ trách phòng tư vấn Khối Tiểu học, đồng hành cùng học sinh nhỏ',
-    },
-    {
-      role: 'TEACHER',
-      roleLabel: 'Giáo viên Chủ nhiệm',
-      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-      fullName: 'Cô Nguyễn Thị Mai Lan (7A2)',
-      username: 'gvcn.lan',
-      altUids: 'usr-teacher-1',
-      password: 'demo123',
-      description: 'Theo dõi học sinh lớp chủ nhiệm được điều phối tâm lý',
-    },
-    {
-      role: 'PARENT',
-      roleLabel: 'Phụ huynh Học sinh',
-      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
-      fullName: 'Chị Hoàng Tuyết Mai',
-      username: 'phuhuynh.mai',
-      altUids: 'usr-parent-1',
-      password: 'demo123',
-      description: 'Tra cứu kiến thức giáo dục giới tính, kết nối ban tâm lý',
+      description: 'Phụ trách phòng tư vấn tâm lý, đồng hành cùng học sinh và phụ huynh',
     },
     {
       role: 'ADMIN',
       roleLabel: 'Quản trị viên / BGH',
       badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      fullName: 'Thầy Phạm Quang Minh',
+      fullName: 'Thầy Phạm Quang Minh (Ban Giám Hiệu)',
       username: 'quantri.minh',
-      altUids: 'usr-admin-1',
+      altUids: 'quantri.minh@school.edu.vn',
       password: 'admin123',
-      description: 'Ban Giám Hiệu, báo cáo thống kê trường, nhật ký kiểm toán',
+      description: 'Ban Giám Hiệu, xử lý báo cáo khẩn cấp, nhật ký kiểm toán và phân quyền',
     },
   ];
 
@@ -128,16 +78,28 @@ export const Login: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+      {/* Thông báo miễn đăng nhập cho học sinh & phụ huynh */}
+      <div className="p-5 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h3 className="font-black text-sm text-emerald-950">
+            Dành cho Học sinh, Phụ huynh & Khách: Không cần đăng nhập!
+          </h3>
+          <p className="text-xs text-emerald-800 mt-0.5">
+            Mọi tính năng của Cổng tư vấn đều mở tự do và ẩn danh 100%. Phần đăng nhập này chỉ dành riêng cho Quản trị viên và Cô Nguyễn Thị Thùy Trang.
+          </p>
+        </div>
+      </div>
+
       {/* Title */}
       <div className="text-center space-y-2 max-w-lg mx-auto">
         <div className="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center mx-auto mb-2">
           <Lock className="w-6 h-6" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-          Cổng Đăng Nhập & Phân Quyền
+          Đăng Nhập Quản Trị & Cô Thùy Trang
         </h1>
         <p className="text-xs text-slate-600">
-          Dành cho Học sinh, Phụ huynh, Giáo viên và Ban Tư vấn Học đường
+          Dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang (Phòng 692)
         </p>
       </div>
 
