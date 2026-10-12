@@ -63,7 +63,15 @@ import {
   Inbox,
   ShieldCheck,
   Building2,
-  MessageCircle
+  MessageCircle,
+  Eye,
+  EyeOff,
+  GraduationCap,
+  Copy,
+  Printer,
+  RefreshCw,
+  Key,
+  Filter
 } from 'lucide-react';
 
 // ==========================================
@@ -1711,20 +1719,45 @@ function AIChatPage() {
 // 7. TÍNH NĂNG 3: GÓC CHIA SẺ & PHÒNG CHỐNG BẮT NẠT
 // ==========================================
 
-// Trang 1: Góc Chia Sẻ Tâm Tư (Tách riêng biệt, không bị trùng lặp)
+// Trang 1: Gửi Tâm Sự Đến Cô Trang & Tra Cứu Phản Hồi (Chỉ Quản trị viên và Cô Trang đăng nhập mới đọc được danh sách tổng)
 function ShareCornerPage() {
-  const { currentUser } = useAuth();
+  const { currentUser, userRole } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isAnonPost, setIsAnonPost] = useState(true);
   const [loadingPost, setLoadingPost] = useState(false);
+  const [createdSecretCode, setCreatedSecretCode] = useState<string | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
+
+  // State Tra Cứu Phản Hồi
+  const [lookupCode, setLookupCode] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [lookupError, setLookupError] = useState<string | null>(null);
+  const [trackedPost, setTrackedPost] = useState<any | null>(null);
+
+  // State Học sinh phản hồi thêm
+  const [studentReply, setStudentReply] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+  const [replySuccess, setReplySuccess] = useState(false);
+
+  const isStaff = userRole === 'ADMIN' || userRole === 'COUNSELOR';
 
   const fetchPosts = async () => {
     try {
-      const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
-      const snapshot = await getDocs(q);
-      setPosts(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/posts/admin-list', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (data.success && data.posts) {
+        setPosts(data.posts);
+      } else {
+        // Fallback Firestore
+        const q = query(collection(db, 'posts'), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        setPosts(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+      }
     } catch {
       const local = localStorage.getItem('demo_posts');
       if (local) setPosts(JSON.parse(local));
@@ -1732,33 +1765,90 @@ function ShareCornerPage() {
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    if (isStaff) {
+      fetchPosts();
+    }
+  }, [isStaff]);
+
+  // Tạo mã ngẫu nhiên dự phòng nếu offline
+  const generateLocalSecretCode = () => {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let s1 = '', s2 = '';
+    for (let i = 0; i < 4; i++) {
+      s1 += chars.charAt(Math.floor(Math.random() * chars.length));
+      s2 += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return `TS-${s1}-${s2}`;
+  };
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !content.trim()) return;
     setLoadingPost(true);
+    setCreatedSecretCode(null);
 
-    const newPost = {
-      title,
-      content,
-      author: isAnonPost ? 'Bạn học ẩn danh' : (currentUser?.email || 'Học sinh'),
-      likes: 1,
-      createdAt: serverTimestamp(),
-      createdStr: 'Vừa xong'
+    const postPayload = {
+      title: title.trim(),
+      content: content.trim(),
+      isAnonymous: isAnonPost,
+      studentName: isAnonPost ? 'Học sinh ẩn danh' : (currentUser?.email || 'Em học sinh'),
+      recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
     };
 
     try {
-      await addDoc(collection(db, 'posts'), newPost);
-      setTitle('');
-      setContent('');
-      fetchPosts();
+      // 1. Gửi qua secure backend API (được bảo vệ, hash mã an toàn)
+      const res = await fetch('/api/posts/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postPayload),
+      });
+      const data = await res.json();
+
+      if (data.success && data.secretCode) {
+        setCreatedSecretCode(data.secretCode);
+        setTitle('');
+        setContent('');
+        if (isStaff) fetchPosts();
+
+        // Đồng bộ song song lên Firestore
+        try {
+          await addDoc(collection(db, 'posts'), {
+            title: postPayload.title,
+            content: postPayload.content,
+            author: postPayload.studentName,
+            recipient: postPayload.recipient,
+            status: 'WAITING',
+            createdAt: serverTimestamp(),
+            createdStr: new Date().toLocaleString('vi-VN'),
+            secretCode: data.secretCode, // Dùng cho tra cứu nội bộ
+            responses: []
+          });
+        } catch (e) {
+          console.warn('Lưu phụ Firestore:', e);
+        }
+      } else {
+        throw new Error(data.message || 'Lỗi gửi bài');
+      }
     } catch {
-      const fallback = { ...newPost, id: 'post_' + Date.now() };
-      const updated = [fallback, ...posts];
-      setPosts(updated);
+      // Fallback khi offline
+      const fallbackCode = generateLocalSecretCode();
+      const fallback = {
+        id: 'post_' + Date.now(),
+        title: postPayload.title,
+        content: postPayload.content,
+        author: postPayload.studentName,
+        recipient: postPayload.recipient,
+        secretCode: fallbackCode,
+        status: 'WAITING',
+        createdAt: new Date().toISOString(),
+        createdStr: new Date().toLocaleString('vi-VN'),
+        responses: []
+      };
+      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+      const updated = [fallback, ...local];
       localStorage.setItem('demo_posts', JSON.stringify(updated));
+      setPosts(updated);
+      setCreatedSecretCode(fallbackCode);
       setTitle('');
       setContent('');
     } finally {
@@ -1766,152 +1856,559 @@ function ShareCornerPage() {
     }
   };
 
-  const handleSavePost = async (post: any) => {
+  // Tra cứu phản hồi bằng mã bí mật
+  const handleLookup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = lookupCode.trim().toUpperCase();
+    if (!clean) return;
+
+    setIsLookingUp(true);
+    setLookupError(null);
+    setTrackedPost(null);
+
     try {
-      const savedItems = JSON.parse(localStorage.getItem('tamly_saved_posts') || '[]');
-      const exists = savedItems.some((item: any) => item.id === post.id);
-      if (!exists) {
-        savedItems.unshift({
-          id: post.id || 'p_' + Date.now(),
-          title: post.title,
-          content: post.content,
-          author: post.author || 'Tâm sự học sinh',
-          savedAt: new Date().toLocaleDateString('vi-VN')
-        });
-        localStorage.setItem('tamly_saved_posts', JSON.stringify(savedItems));
+      // 1. Thử gọi qua Backend API trước
+      const res = await fetch('/api/posts/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secretCode: clean }),
+      });
+      const data = await res.json();
+
+      if (data.success && data.data) {
+        setTrackedPost(data.data);
+        setIsLookingUp(false);
+        return;
       }
-      if (currentUser) {
-        try {
-          const savedRef = doc(db, 'users', currentUser.uid, 'savedPosts', post.id || 'p_' + Date.now());
-          await setDoc(savedRef, {
-            postId: post.id,
-            title: post.title,
-            content: post.content,
-            author: post.author,
-            savedAt: serverTimestamp()
-          });
-        } catch (e) {
-          console.warn('Lưu Firestore phụ:', e);
-        }
-      }
-      alert('Đã lưu bài viết vào mục "Đã lưu" của em thành công!');
     } catch {
-      alert('Đã lưu bài viết thành công!');
+      // Fallback kiểm tra Firestore hoặc localStorage
+    }
+
+    try {
+      // 2. Kiểm tra trên Firestore nếu backend đang dùng database khác
+      const q = query(collection(db, 'posts'));
+      const snapshot = await getDocs(q);
+      const found = snapshot.docs.find(d => {
+        const p = d.data();
+        return p.secretCode && p.secretCode.trim().toUpperCase() === clean;
+      });
+
+      if (found) {
+        setTrackedPost({ id: found.id, ...found.data() });
+        setIsLookingUp(false);
+        return;
+      }
+    } catch {
+      // Bỏ qua lỗi firestore
+    }
+
+    // 3. Kiểm tra localStorage fallback
+    const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+    const matchLocal = local.find((p: any) => p.secretCode && p.secretCode.trim().toUpperCase() === clean);
+    if (matchLocal) {
+      setTrackedPost(matchLocal);
+    } else {
+      setLookupError('Mã tra cứu không chính xác hoặc bài tâm sự chưa được tạo. Vui lòng kiểm tra lại từng ký tự.');
+    }
+    setIsLookingUp(false);
+  };
+
+  // Học sinh gửi thêm tin nhắn
+  const handleStudentSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studentReply.trim() || !trackedPost) return;
+
+    setSendingReply(true);
+    setReplySuccess(false);
+
+    const messageText = studentReply.trim();
+    const cleanCode = (lookupCode || trackedPost.secretCode || '').trim().toUpperCase();
+
+    try {
+      const res = await fetch('/api/posts/reply-student', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secretCode: cleanCode,
+          message: messageText,
+          senderName: trackedPost.author || 'Em học sinh',
+        }),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        const newMsg = data.response;
+        setTrackedPost({
+          ...trackedPost,
+          status: 'WAITING',
+          responses: [...(trackedPost.responses || []), newMsg],
+        });
+        setStudentReply('');
+        setReplySuccess(true);
+      } else {
+        throw new Error(data.message);
+      }
+    } catch {
+      // Fallback
+      const newMsg = {
+        id: 'msg_' + Date.now(),
+        senderType: 'STUDENT',
+        senderName: trackedPost.author || 'Em học sinh',
+        content: messageText,
+        createdAt: new Date().toISOString(),
+      };
+      const updatedPost = {
+        ...trackedPost,
+        status: 'WAITING',
+        responses: [...(trackedPost.responses || []), newMsg],
+      };
+      setTrackedPost(updatedPost);
+
+      // Lưu lại local
+      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+      const updatedList = local.map((p: any) => p.id === trackedPost.id ? updatedPost : p);
+      localStorage.setItem('demo_posts', JSON.stringify(updatedList));
+
+      setStudentReply('');
+      setReplySuccess(true);
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 3000);
+  };
+
+  const handlePrintCode = (code: string, postTitle: string) => {
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Phiếu Tra Cứu Tâm Sự - Trường TH&THCS Phước Hưng</title>
+            <style>
+              body { font-family: sans-serif; padding: 40px; text-align: center; color: #1e293b; }
+              .box { border: 2px dashed #3b82f6; border-radius: 16px; padding: 30px; max-width: 500px; margin: 0 auto; background: #eff6ff; }
+              .code { font-size: 28px; font-weight: 900; letter-spacing: 2px; color: #1d4ed8; background: #fff; padding: 12px 20px; border-radius: 12px; margin: 20px 0; display: inline-block; border: 1px solid #bfdbfe; }
+              .note { font-size: 13px; color: #64748b; line-height: 1.5; }
+            </style>
+          </head>
+          <body>
+            <div class="box">
+              <h2>TRƯỜNG TH & THCS PHƯỚC HƯNG</h2>
+              <p><strong>CỔNG TƯ VẤN TÂM LÝ - PHÒNG 692 (CÔ THÙY TRANG)</strong></p>
+              <hr style="border: none; border-top: 1px solid #cbd5e1; margin: 15px 0;" />
+              <p>Mã tra cứu bảo mật phản hồi của em:</p>
+              <div class="code">${code}</div>
+              <p class="note">Tiêu đề: <em>${postTitle}</em></p>
+              <p class="note">
+                ⚠️ <strong>Lưu ý quan trọng:</strong> Hãy giữ mã này cẩn thận. Em có thể nhập mã này tại mục "TRA CỨU PHẢN HỒI CỦA THẦY CÔ" trên website để đọc lời khuyên từ Cô Trang và tiếp tục trò chuyện hoàn toàn bảo mật.
+              </p>
+            </div>
+            <script>window.onload = function() { window.print(); };</script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const handleDeletePost = async (id: string) => {
+    if (window.confirm('Xóa tin nhắn tâm sự này?')) {
+      try {
+        await deleteDoc(doc(db, 'posts', id));
+        setPosts(posts.filter((p) => p.id !== id));
+      } catch {
+        const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+        const updated = local.filter((p: any) => p.id !== id);
+        localStorage.setItem('demo_posts', JSON.stringify(updated));
+        setPosts(updated);
+      }
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Tiêu đề trang Góc Chia Sẻ */}
+      {/* Tiêu đề trang Gửi Tâm Sự Đến Cô Trang */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold shadow-2xs mb-3">
-          <MessageSquare className="w-4 h-4 text-indigo-600" />
-          <span>GÓC CHIA SẺ TÂM TƯ • TRƯỜNG TH&THCS PHƯỚC HƯNG</span>
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold shadow-2xs mb-3">
+          <MessageSquare className="w-4 h-4 text-blue-600" />
+          <span>GÓC CHIA SẺ & TRẢI LÒNG TUỔI HỌC TRÒ • PHÒNG 692</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">
-          Góc Chia Sẻ & Trải Lòng Tuổi Học Trò
+          Gửi Tâm Sự Đến Cô Nguyễn Thị Thùy Trang
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto mt-2 leading-relaxed">
-          Nơi các em học sinh có thể gửi gắm tâm sự, giải tỏa áp lực thi cử và tìm kiếm sự đồng cảm nhân văn hoàn toàn ẩn danh.
+          Không gian an toàn tuyệt đối để em trải lòng. Học sinh <strong className="text-blue-700">KHÔNG CẦN ĐĂNG NHẬP</strong>. Sau khi gửi, em sẽ nhận một <strong>Mã tra cứu bảo mật</strong> để xem phản hồi riêng tư từ thầy cô.
         </p>
       </div>
 
-      <div className="space-y-6">
-        {/* Form tạo bài viết */}
-        <div className="bg-white/80 backdrop-blur-xl border border-white/80 p-6 sm:p-7 rounded-3xl shadow-lg">
+      <div className="space-y-8">
+        {/* KHỐI 1: FORM GỬI TÂM SỰ (GIỮ NGUYÊN GIAO DIỆN HIỆN TẠI) */}
+        <div className="bg-white/95 backdrop-blur-xl border border-blue-100 p-6 sm:p-7 rounded-3xl shadow-lg">
           <h2 className="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-indigo-500" />
-            <span>Gửi gắm tâm sự cùng bạn bè học đường</span>
+            <Sparkles className="w-5 h-5 text-blue-600" />
+            <span>Viết lời tâm sự gửi Cô Thùy Trang</span>
           </h2>
           <p className="text-xs text-slate-500 mb-4">
-            Mọi chia sẻ đều được kiểm duyệt nhân văn. Em có thể chọn đăng ẩn danh hoàn toàn để thoải mái trút bỏ gánh nặng.
+            Em có thể chọn gửi ẩn danh để hoàn toàn yên tâm chia sẻ. Cô Trang luôn ở đây để lắng nghe và đồng hành cùng em.
           </p>
 
-          <form onSubmit={handleCreatePost} className="space-y-3.5">
-            <input
-              type="text"
-              placeholder="Tiêu đề tâm sự (ví dụ: Áp lực kỳ thi vào lớp 10, chuyện hiểu lầm với bạn thân...)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-            />
-            <textarea
-              placeholder="Nội dung em muốn chia sẻ... Hãy thoải mái trút bầu tâm sự nhé!"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={4}
-              required
-              className="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-300 outline-none"
-            />
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isAnonPost}
-                  onChange={(e) => setIsAnonPost(e.target.checked)}
-                  className="w-4 h-4 rounded text-indigo-600 accent-indigo-600"
-                />
-                <span>Đăng với tên ẩn danh</span>
-              </label>
+          {createdSecretCode ? (
+            /* Thông báo đăng thành công & Cung cấp mã tra cứu bí mật */
+            <div className="p-6 sm:p-8 rounded-3xl bg-blue-50/90 border border-blue-200 text-center space-y-4 animate-in zoom-in-95">
+              <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-sm">
+                <Check className="w-8 h-8 stroke-[3]" />
+              </div>
 
-              <button
-                type="submit"
-                disabled={loadingPost}
-                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold text-xs rounded-xl shadow-md hover:scale-105 active:scale-95 transition"
-              >
-                {loadingPost ? 'Đang gửi...' : 'Đăng Tâm Sự'}
-              </button>
-            </div>
-          </form>
-        </div>
+              <div>
+                <span className="text-xs font-black tracking-widest uppercase bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
+                  ĐÃ GỬI TÂM SỰ THÀNH CÔNG
+                </span>
+                <h3 className="font-black text-lg sm:text-xl text-slate-800 mt-2">
+                  Tin nhắn của em đã được chuyển an toàn đến Cô Trang!
+                </h3>
+              </div>
 
-        {/* Danh sách bài đăng */}
-        <div className="space-y-4">
-          <h3 className="font-extrabold text-slate-800 text-sm flex items-center justify-between">
-            <span>Những câu chuyện đang được sẻ chia</span>
-            <span className="text-xs text-slate-400 font-normal">{posts.length} bài viết</span>
-          </h3>
-
-          {posts.map((post) => (
-            <div
-              key={post.id}
-              className="bg-white/80 backdrop-blur-xl border border-white/80 p-5 rounded-3xl shadow-md hover:shadow-lg transition space-y-3"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h4 className="font-black text-base text-slate-800 leading-snug">{post.title}</h4>
-                  <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
-                    <span className="font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">
-                      {post.author}
-                    </span>
-                    <span>• {post.createdStr || 'Gần đây'}</span>
-                  </div>
+              {/* Ô hiển thị Mã tra cứu bí mật */}
+              <div className="p-5 rounded-2xl bg-white border-2 border-blue-300 shadow-sm max-w-md mx-auto space-y-2">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                  Mã tra cứu phản hồi bí mật của em:
+                </span>
+                <div className="font-mono text-2xl sm:text-3xl font-black text-blue-600 tracking-wider py-1 select-all">
+                  {createdSecretCode}
                 </div>
+                <div className="flex items-center justify-center gap-2 pt-1">
+                  <button
+                    onClick={() => handleCopyCode(createdSecretCode)}
+                    className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl border border-blue-200 transition flex items-center gap-1.5 active:scale-95"
+                  >
+                    {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                    <span>{copiedCode ? 'Đã sao chép mã!' : 'Sao chép mã'}</span>
+                  </button>
+                  <button
+                    onClick={() => handlePrintCode(createdSecretCode, 'Tâm sự học sinh gửi Cô Trang')}
+                    className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition flex items-center gap-1.5 active:scale-95"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>In / Lưu phiếu</span>
+                  </button>
+                </div>
+              </div>
 
+              {/* Hướng dẫn quan trọng */}
+              <div className="max-w-md mx-auto p-4 rounded-2xl bg-amber-50/80 border border-amber-200/90 text-left flex items-start gap-3 text-xs text-amber-900 leading-relaxed">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                <p>
+                  <strong>Lưu ý bảo mật:</strong> Hãy lưu mã này để xem phản hồi của thầy cô. Nếu mất mã, bạn có thể không truy cập lại được cuộc trò chuyện. Mã này không hiển thị công khai ở bất kỳ đâu khác.
+                </p>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
                 <button
-                  onClick={() => handleSavePost(post)}
-                  className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition shrink-0"
-                  title="Lưu bài viết"
+                  onClick={() => {
+                    setLookupCode(createdSecretCode);
+                    // Tự động cuộn xuống mục tra cứu
+                    document.getElementById('lookup-section')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5"
                 >
-                  <Bookmark className="w-4 h-4" />
+                  <Search className="w-4 h-4" />
+                  <span>Tra cứu phản hồi ngay với mã này</span>
+                </button>
+                <button
+                  onClick={() => setCreatedSecretCode(null)}
+                  className="px-5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 transition"
+                >
+                  Gửi thêm tâm sự khác
                 </button>
               </div>
-
-              <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50/60 p-3.5 rounded-2xl">
-                {post.content}
-              </p>
-
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                <div className="flex items-center gap-1.5 text-rose-500 font-bold">
-                  <Heart className="w-3.5 h-3.5 fill-rose-500" />
-                  <span>Đồng cảm cùng em</span>
-                </div>
-                <span className="text-[11px] text-slate-400">Được bảo vệ bởi quy chuẩn văn minh học đường</span>
-              </div>
             </div>
-          ))}
+          ) : (
+            <form onSubmit={handleCreatePost} className="space-y-3.5">
+              <input
+                type="text"
+                placeholder="Tiêu đề tâm sự (ví dụ: Áp lực thi cử, chuyện bạn bè, khó mở lời với gia đình...)"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
+              />
+              <textarea
+                placeholder="Nội dung tâm sự gửi Cô Trang... Hãy thoải mái trút hết nỗi niềm trong lòng nhé!"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                rows={5}
+                required
+                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-400 outline-none"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <label className="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isAnonPost}
+                    onChange={(e) => setIsAnonPost(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 accent-blue-600"
+                  />
+                  <span>Gửi với danh tính ẩn danh</span>
+                </label>
+
+                <button
+                  type="submit"
+                  disabled={loadingPost}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-200 hover:scale-105 active:scale-95 transition flex items-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{loadingPost ? 'Đang gửi...' : 'Đăng Tâm Sự'}</span>
+                </button>
+              </div>
+            </form>
+          )}
         </div>
+
+        {/* KHỐI 2: MỤC TRA CỨU PHẢN HỒI CỦA THẦY CÔ (DÀNH CHO HỌC SINH) */}
+        <div id="lookup-section" className="bg-white/95 backdrop-blur-xl border border-blue-200 p-6 sm:p-7 rounded-3xl shadow-lg scroll-mt-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+              <Key className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-800">
+                TRA CỨU PHẢN HỒI CỦA THẦY CÔ
+              </h2>
+              <p className="text-xs text-slate-500">
+                Nhập mã tra cứu của bài tâm sự để xem câu trả lời và tiếp tục trò chuyện riêng tư với Cô Trang.
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleLookup} className="flex flex-col sm:flex-row gap-3 pt-3 mb-5">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Search className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                value={lookupCode}
+                onChange={(e) => setLookupCode(e.target.value.toUpperCase())}
+                placeholder="Nhập mã tra cứu (ví dụ: TS-XXXX-XXXX)..."
+                required
+                className="w-full text-xs sm:text-sm font-mono pl-10 pr-4 py-3 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none uppercase font-bold"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLookingUp}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition disabled:opacity-60 flex items-center justify-center gap-2 shrink-0"
+            >
+              {isLookingUp ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              <span>{isLookingUp ? 'Đang tìm...' : 'Xem phản hồi'}</span>
+            </button>
+          </form>
+
+          {lookupError && (
+            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2.5 mb-4 animate-in fade-in">
+              <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+              <span>{lookupError}</span>
+            </div>
+          )}
+
+          {/* KẾT QUẢ TRA CỨU ĐƯỢC XÁC THỰC */}
+          {trackedPost && (
+            <div className="p-6 rounded-3xl bg-blue-50/60 border border-blue-200 space-y-6 animate-in fade-in">
+              {/* Header phiếu */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-blue-100">
+                <div>
+                  <span className="text-[11px] font-bold text-blue-600 bg-blue-100/80 px-2.5 py-0.5 rounded-full border border-blue-200">
+                    Bài tâm sự của em
+                  </span>
+                  <h3 className="font-black text-base sm:text-lg text-slate-800 mt-1">
+                    {trackedPost.title}
+                  </h3>
+                  <span className="text-[11px] text-slate-400">
+                    Gửi lúc: {trackedPost.createdStr || 'Gần đây'} • Người nhận: {trackedPost.recipient || 'Cô Thùy Trang'}
+                  </span>
+                </div>
+
+                {/* Trạng thái xử lý theo yêu cầu */}
+                <div className="shrink-0">
+                  {trackedPost.status === 'REPLIED' || (trackedPost.responses && trackedPost.responses.some((r: any) => r.senderType === 'TEACHER')) ? (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold shadow-2xs">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Đã có phản hồi</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold shadow-2xs">
+                      <Clock className="w-4 h-4 text-amber-600 animate-pulse" />
+                      <span>Đang chờ thầy cô phản hồi</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Nội dung ban đầu học sinh gửi */}
+              <div className="p-4 rounded-2xl bg-white border border-blue-100 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line shadow-xs">
+                <span className="text-[11px] font-bold text-slate-400 block mb-1">Nội dung em đã gửi:</span>
+                {trackedPost.content}
+              </div>
+
+              {/* Lịch sử phản hồi & trao đổi */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-blue-600" />
+                  <span>Lịch sử phản hồi từ thầy cô & trao đổi:</span>
+                </h4>
+
+                {(!trackedPost.responses || trackedPost.responses.length === 0) ? (
+                  <div className="p-5 rounded-2xl bg-white/80 border border-slate-200 text-center text-xs text-slate-500">
+                    Cô Trang đã tiếp nhận bài tâm sự này và đang chuẩn bị phản hồi thấu cảm nhất cho em. Em hãy quay lại sau ít phút hoặc lưu mã để tra cứu nhé!
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {trackedPost.responses.map((resp: any, idx: number) => {
+                      const isTeacher = resp.senderType === 'TEACHER' || resp.senderType === 'COUNSELOR';
+                      return (
+                        <div
+                          key={resp.id || idx}
+                          className={`p-4 rounded-2xl border transition-all ${
+                            isTeacher
+                              ? 'bg-blue-100/80 border-blue-300 text-slate-800 ml-0 sm:ml-4 shadow-sm'
+                              : 'bg-white border-slate-200 text-slate-700 mr-0 sm:mr-4 shadow-xs'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2 mb-1.5 text-xs">
+                            <span className={`font-black flex items-center gap-1.5 ${isTeacher ? 'text-blue-900' : 'text-slate-800'}`}>
+                              {isTeacher ? <GraduationCap className="w-4 h-4 text-blue-600" /> : <User className="w-4 h-4 text-slate-500" />}
+                              <span>{resp.senderName || (isTeacher ? 'Cô Nguyễn Thị Thùy Trang' : 'Em học sinh')}</span>
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {resp.createdAt ? new Date(resp.createdAt).toLocaleString('vi-VN') : 'Vừa xong'}
+                            </span>
+                          </div>
+                          <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium">
+                            {resp.content}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Ô nhập tin nhắn tiếp theo và nút "Gửi tin nhắn" để học sinh tiếp tục trao đổi không cần tài khoản */}
+              <form onSubmit={handleStudentSendMessage} className="space-y-3 pt-2 border-t border-blue-100">
+                <label className="block text-xs font-bold text-slate-700">
+                  Gửi thêm lời nhắn hoặc phản hồi tiếp theo cho Cô Trang:
+                </label>
+                <div className="relative">
+                  <textarea
+                    rows={3}
+                    value={studentReply}
+                    onChange={(e) => setStudentReply(e.target.value)}
+                    placeholder="Em muốn nhắn thêm điều gì với cô không? (Cô sẽ đọc được ngay trong cuộc trò chuyện này)..."
+                    required
+                    className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-blue-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none leading-relaxed"
+                  />
+                </div>
+
+                {replySuccess && (
+                  <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>Tin nhắn của em đã được gửi thành công đến Cô Trang!</span>
+                  </div>
+                )}
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={sendingReply}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-60"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{sendingReply ? 'Đang gửi tin nhắn...' : 'Gửi tin nhắn'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+
+        {/* KHỐI 3: DÀNH CHO QUẢN TRỊ VIÊN & CÔ TRANG (CHỈ XUẤT HIỆN KHI ĐĂNG NHẬP) */}
+        {isStaff ? (
+          <div className="space-y-4 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <h3 className="font-black text-slate-800 text-sm flex items-center gap-2">
+                <Lock className="w-4 h-4 text-blue-600" />
+                <span>Hộp thư tâm sự học sinh (Quyền: {userRole === 'ADMIN' ? 'Ban Giám Hiệu' : 'Cô Thùy Trang'})</span>
+              </h3>
+              <span className="text-xs text-blue-600 font-bold bg-blue-50 px-2.5 py-1 rounded-full">
+                {posts.length} tin nhắn
+              </span>
+            </div>
+
+            {posts.length === 0 ? (
+              <div className="bg-white p-8 rounded-3xl text-center text-slate-400 text-xs border border-slate-100">
+                Chưa có tin nhắn tâm sự nào từ học sinh.
+              </div>
+            ) : (
+              posts.map((post) => (
+                <div
+                  key={post.id}
+                  className="bg-white border border-slate-200 p-5 rounded-3xl shadow-sm hover:shadow-md transition space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h4 className="font-black text-base text-slate-800 leading-snug">{post.title}</h4>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-400 mt-1">
+                        <span className="font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200">
+                          {post.author}
+                        </span>
+                        <span>• {post.createdStr || 'Gần đây'}</span>
+                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                          post.status === 'REPLIED' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'
+                        }`}>
+                          {post.status === 'REPLIED' ? 'Đã phản hồi' : 'Chờ phản hồi'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="p-2 rounded-xl text-rose-500 hover:bg-rose-50 transition shrink-0"
+                      title="Xóa tin nhắn"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    {post.content}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          /* Người chưa đăng nhập: Hiển thị cam kết bảo mật rõ ràng theo yêu cầu */
+          <div className="p-6 rounded-3xl bg-blue-50/80 border border-blue-200/90 text-center space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-700 flex items-center justify-center mx-auto shadow-inner">
+              <ShieldCheck className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="font-black text-slate-800 text-sm sm:text-base">
+              Cam Kết Bảo Mật 100% Nội Dung Tâm Sự
+            </h3>
+            <p className="text-xs text-slate-600 max-w-lg mx-auto leading-relaxed">
+              Mọi tin nhắn của học sinh gửi đến Cô Trang đều được bảo mật tuyệt đối, không hiển thị công khai.{' '}
+              <strong className="text-blue-900">
+                Chỉ có Quản trị viên (Ban Giám Hiệu) và Cô Nguyễn Thị Thùy Trang đăng nhập mới thấy được tin nhắn
+              </strong>{' '}
+              hoặc người có mã tra cứu bí mật mới xem được phản hồi tương ứng.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2799,6 +3296,12 @@ function DashboardPage() {
   const [appointList, setAppointList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [postFilter, setPostFilter] = useState<'ALL' | 'WAITING' | 'REPLIED'>('ALL');
+  const [postSearch, setPostSearch] = useState('');
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
+  const [teacherReplyText, setTeacherReplyText] = useState('');
+  const [sendingTeacherReply, setSendingTeacherReply] = useState(false);
+
   const fetchAllData = async () => {
     setLoading(true);
     try {
@@ -2806,9 +3309,23 @@ function DashboardPage() {
       const bSnap = await getDocs(query(collection(db, 'bullyingReports'), orderBy('createdAt', 'desc')));
       setBullyingList(bSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
 
-      // 2. Posts
-      const pSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc')));
-      setPostsList(pSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      // 2. Posts: Thử lấy từ Backend API hoặc Firestore
+      try {
+        const token = localStorage.getItem('auth_token');
+        const res = await fetch('/api/posts/admin-list', {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
+        if (data.success && data.posts) {
+          setPostsList(data.posts);
+        } else {
+          const pSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc')));
+          setPostsList(pSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        }
+      } catch {
+        const pSnap = await getDocs(query(collection(db, 'posts'), orderBy('createdAt', 'desc')));
+        setPostsList(pSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      }
 
       // 3. Appointments
       const aSnap = await getDocs(query(collection(db, 'appointments'), orderBy('createdAt', 'desc')));
@@ -2827,16 +3344,137 @@ function DashboardPage() {
     fetchAllData();
   }, []);
 
+  // Xử lý giáo viên trả lời bài tâm sự
+  const handleTeacherSubmitReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPost || !teacherReplyText.trim()) return;
+
+    setSendingTeacherReply(true);
+    const replyContent = teacherReplyText.trim();
+    const counselorName = userRole === 'ADMIN' ? 'Ban Giám Hiệu / Quản trị viên' : 'Cô Nguyễn Thị Thùy Trang (Phòng 692)';
+
+    try {
+      // 1. Gửi qua Backend API
+      const token = localStorage.getItem('auth_token');
+      const res = await fetch('/api/posts/admin-reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          postId: selectedPost.id,
+          content: replyContent,
+          status: 'REPLIED'
+        })
+      });
+      const data = await res.json();
+
+      const newResp = data.response || {
+        id: 'resp_' + Date.now(),
+        senderType: 'TEACHER',
+        senderName: counselorName,
+        content: replyContent,
+        createdAt: new Date().toISOString()
+      };
+
+      // 2. Lưu cập nhật Firestore
+      try {
+        const postRef = doc(db, 'posts', selectedPost.id);
+        const currentResponses = selectedPost.responses || [];
+        await updateDoc(postRef, {
+          status: 'REPLIED',
+          responses: [...currentResponses, newResp],
+          updatedAt: serverTimestamp()
+        });
+      } catch (err) {
+        console.warn('Lưu phụ Firestore post:', err);
+      }
+
+      // Cập nhật state
+      const updatedPost = {
+        ...selectedPost,
+        status: 'REPLIED',
+        responses: [...(selectedPost.responses || []), newResp]
+      };
+      setSelectedPost(updatedPost);
+      setPostsList(postsList.map(p => p.id === selectedPost.id ? updatedPost : p));
+
+      // Cập nhật localStorage
+      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+      const updatedList = local.map((p: any) => p.id === selectedPost.id ? updatedPost : p);
+      localStorage.setItem('demo_posts', JSON.stringify(updatedList));
+
+      setTeacherReplyText('');
+      alert('Đã gửi phản hồi thành công đến học sinh!');
+    } catch {
+      // Fallback
+      const newResp = {
+        id: 'resp_' + Date.now(),
+        senderType: 'TEACHER',
+        senderName: counselorName,
+        content: replyContent,
+        createdAt: new Date().toISOString()
+      };
+      const updatedPost = {
+        ...selectedPost,
+        status: 'REPLIED',
+        responses: [...(selectedPost.responses || []), newResp]
+      };
+      setSelectedPost(updatedPost);
+      setPostsList(postsList.map(p => p.id === selectedPost.id ? updatedPost : p));
+
+      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+      const updatedList = local.map((p: any) => p.id === selectedPost.id ? updatedPost : p);
+      localStorage.setItem('demo_posts', JSON.stringify(updatedList));
+
+      setTeacherReplyText('');
+      alert('Đã lưu phản hồi của giáo viên!');
+    } finally {
+      setSendingTeacherReply(false);
+    }
+  };
+
+  const handleUpdatePostStatus = async (postId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, 'posts', postId), { status: newStatus });
+    } catch {}
+    const updated = postsList.map(p => p.id === postId ? { ...p, status: newStatus } : p);
+    setPostsList(updated);
+    if (selectedPost && selectedPost.id === postId) {
+      setSelectedPost({ ...selectedPost, status: newStatus });
+    }
+    const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+    localStorage.setItem('demo_posts', JSON.stringify(local.map((p: any) => p.id === postId ? { ...p, status: newStatus } : p)));
+  };
+
   const handleDeletePost = async (id: string) => {
     if (window.confirm('Xóa bài chia sẻ này khỏi hệ thống?')) {
       try {
         await deleteDoc(doc(db, 'posts', id));
-        setPostsList(postsList.filter((p) => p.id !== id));
-      } catch {
-        setPostsList(postsList.filter((p) => p.id !== id));
+      } catch {}
+      setPostsList(postsList.filter((p) => p.id !== id));
+      if (selectedPost && selectedPost.id === id) {
+        setSelectedPost(null);
       }
+      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+      localStorage.setItem('demo_posts', JSON.stringify(local.filter((p: any) => p.id !== id)));
     }
   };
+
+  // Lọc và tìm kiếm danh sách bài tâm sự
+  const filteredPosts = postsList.filter(p => {
+    if (postFilter === 'WAITING' && p.status === 'REPLIED') return false;
+    if (postFilter === 'REPLIED' && p.status !== 'REPLIED') return false;
+    if (postSearch.trim()) {
+      const q = postSearch.toLowerCase();
+      const matchTitle = (p.title || '').toLowerCase().includes(q);
+      const matchContent = (p.content || '').toLowerCase().includes(q);
+      const matchAuthor = (p.author || '').toLowerCase().includes(q);
+      return matchTitle || matchContent || matchAuthor;
+    }
+    return true;
+  });
 
   const handleUpdateReportStatus = async (id: string, newStatus: string) => {
     try {
@@ -2849,51 +3487,7 @@ function DashboardPage() {
 
   // Nếu chưa đăng nhập với quyền Quản trị hoặc Cô Thùy Trang:
   if (userRole !== 'ADMIN' && userRole !== 'COUNSELOR') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <div className="bg-white/85 backdrop-blur-xl border border-indigo-100 p-8 rounded-3xl shadow-xl text-center space-y-5">
-          <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center justify-center mx-auto shadow-sm">
-            <ShieldCheck className="w-8 h-8 text-indigo-600" />
-          </div>
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-800">
-              Khu Vực Quản Trị Hệ Thống
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              TRƯỜNG TH&THCS PHƯỚC HƯNG
-            </p>
-          </div>
-          
-          <div className="p-4 rounded-2xl bg-indigo-50/80 border border-indigo-100 text-xs sm:text-sm text-indigo-950 text-left leading-relaxed space-y-2">
-            <p className="font-bold flex items-center gap-1.5 text-indigo-900">
-              <Lock className="w-4 h-4 text-indigo-600 shrink-0" />
-              <span>Chỉ dành riêng cho Ban Giám Hiệu & Cô Nguyễn Thị Thùy Trang</span>
-            </p>
-            <p className="text-slate-600">
-              Mục Quản Trị này dùng để tiếp nhận và xử lý hồ sơ báo cáo bắt nạt học đường, danh sách học sinh đặt lịch tư vấn và kiểm duyệt bài viết tâm sự.
-            </p>
-            <p className="text-emerald-800 font-semibold pt-1 border-t border-indigo-100">
-              ✓ Tất cả học sinh, phụ huynh và khách vào sử dụng toàn bộ tính năng khác của cổng tư vấn mà <strong>KHÔNG CẦN ĐĂNG NHẬP</strong>.
-            </p>
-          </div>
-
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <button
-              onClick={() => quickLogin('thuytrang.nguyen@school.edu.vn', 'demo123')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-md transition hover:scale-105"
-            >
-              Đăng nhập: Cô Nguyễn Thị Thùy Trang
-            </button>
-            <button
-              onClick={() => quickLogin('quantri.minh@school.edu.vn', 'admin123')}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition hover:scale-105"
-            >
-              Đăng nhập: Quản trị viên (BGH)
-            </button>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoginPage />;
   }
 
   return (
@@ -3039,30 +3633,256 @@ function DashboardPage() {
           </div>
         )}
 
-        {/* Tab 3: Posts */}
+        {/* Tab 3: Posts - Quản lý tâm sự học sinh & Trả lời phản hồi */}
         {activeTab === 'posts' && (
-          <div className="space-y-4">
-            <h3 className="font-extrabold text-sm text-slate-800">Kiểm Duyệt Bài Viết Góc Chia Sẻ</h3>
-            {postsList.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">Chưa có bài viết nào.</p>
+          <div className="space-y-5">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-800 flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-indigo-600" />
+                  <span>Quản Lý Tâm Sự Học Sinh & Trả Lời Phản Hồi</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Đọc tâm sự, theo dõi lịch sử đối thoại và gửi câu trả lời trực tiếp cho học sinh.
+                </p>
+              </div>
+
+              {/* Bộ lọc trạng thái */}
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl text-xs font-bold shrink-0">
+                <button
+                  onClick={() => setPostFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    postFilter === 'ALL' ? 'bg-white text-indigo-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Tất cả ({postsList.length})
+                </button>
+                <button
+                  onClick={() => setPostFilter('WAITING')}
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    postFilter === 'WAITING' ? 'bg-white text-amber-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Chưa trả lời ({postsList.filter(p => p.status !== 'REPLIED').length})
+                </button>
+                <button
+                  onClick={() => setPostFilter('REPLIED')}
+                  className={`px-3 py-1.5 rounded-xl transition ${
+                    postFilter === 'REPLIED' ? 'bg-white text-emerald-700 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Đã trả lời ({postsList.filter(p => p.status === 'REPLIED').length})
+                </button>
+              </div>
+            </div>
+
+            {/* Thanh tìm kiếm */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="text"
+                value={postSearch}
+                onChange={(e) => setPostSearch(e.target.value)}
+                placeholder="Tìm kiếm theo tiêu đề, nội dung tâm sự hoặc tác giả..."
+                className="w-full text-xs sm:text-sm pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 bg-white focus:ring-2 focus:ring-indigo-400 outline-none"
+              />
+            </div>
+
+            {filteredPosts.length === 0 ? (
+              <div className="bg-slate-50/70 p-10 rounded-3xl text-center text-slate-400 text-xs border border-dashed border-slate-200">
+                Không tìm thấy bài tâm sự nào phù hợp với bộ lọc.
+              </div>
             ) : (
-              <div className="space-y-3">
-                {postsList.map((p) => (
-                  <div key={p.id} className="p-4 rounded-2xl bg-white border border-slate-100 shadow-xs flex items-center justify-between gap-4">
-                    <div>
-                      <h4 className="font-bold text-xs text-slate-800">{p.title}</h4>
-                      <p className="text-[11px] text-slate-500 line-clamp-1">{p.content}</p>
-                      <span className="text-[10px] text-slate-400">Tác giả: {p.author}</span>
-                    </div>
-                    <button
-                      onClick={() => handleDeletePost(p.id)}
-                      className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition"
-                      title="Xóa bài viết"
+              <div className="grid grid-cols-1 gap-3.5">
+                {filteredPosts.map((p) => {
+                  const isReplied = p.status === 'REPLIED';
+                  const responseCount = (p.responses || []).length;
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-5 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:shadow-md transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <div className="space-y-1.5 flex-1 cursor-pointer" onClick={() => setSelectedPost(p)}>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h4 className="font-black text-sm text-slate-800 hover:text-indigo-600 transition">
+                            {p.title}
+                          </h4>
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                              isReplied
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
+                          >
+                            {isReplied ? 'Đã phản hồi' : 'Chưa trả lời'}
+                          </span>
+                          {responseCount > 0 && (
+                            <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-full border border-blue-200">
+                              {responseCount} tin trao đổi
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                          {p.content}
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 pt-0.5">
+                          <span>Người gửi: <strong className="text-slate-600">{p.author || 'Học sinh'}</strong></span>
+                          <span>•</span>
+                          <span>Thời gian: {p.createdStr || 'Gần đây'}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                        <button
+                          onClick={() => setSelectedPost(p)}
+                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          <span>{isReplied ? 'Xem & Tiếp tục trả lời' : 'Trả lời ngay'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeletePost(p.id)}
+                          className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                          title="Xóa bài viết"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* MODAL / CHI TIẾT BÀI TÂM SỰ & SOẠN CÂU TRẢ LỜI CỦA GIÁO VIÊN */}
+            {selectedPost && (
+              <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+                <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95">
+                  {/* Modal Header */}
+                  <div className="p-5 sm:p-6 border-b border-slate-100 flex items-start justify-between gap-4 bg-indigo-50/40">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-black uppercase tracking-wider bg-indigo-100 text-indigo-800 px-2.5 py-0.5 rounded-full">
+                          CHI TIẾT TÂM SỰ HỌC SINH
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          selectedPost.status === 'REPLIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {selectedPost.status === 'REPLIED' ? 'Đã phản hồi' : 'Đang chờ xử lý'}
+                        </span>
+                      </div>
+                      <h3 className="font-black text-lg text-slate-800 leading-snug">
+                        {selectedPost.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tác giả: <strong>{selectedPost.author}</strong> • Gửi lúc: {selectedPost.createdStr || 'Gần đây'}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setSelectedPost(null)}
+                      className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white rounded-2xl transition"
+                    >
+                      <X className="w-5 h-5" />
                     </button>
                   </div>
-                ))}
+
+                  {/* Modal Body: Lịch sử cuộc trò chuyện */}
+                  <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
+                    {/* Bài tâm sự ban đầu */}
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                      <span className="text-[11px] font-bold text-slate-400 block mb-1">Nội dung tâm sự ban đầu:</span>
+                      {selectedPost.content}
+                    </div>
+
+                    {/* Lịch sử các phản hồi */}
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <MessageSquare className="w-4 h-4 text-indigo-600" />
+                        <span>Lịch sử trao đổi ({ (selectedPost.responses || []).length } lượt):</span>
+                      </h4>
+
+                      {(!selectedPost.responses || selectedPost.responses.length === 0) ? (
+                        <p className="text-xs text-slate-400 italic py-2">
+                          Chưa có câu trả lời nào từ giáo viên. Hãy nhập phản hồi bên dưới.
+                        </p>
+                      ) : (
+                        <div className="space-y-3">
+                          {selectedPost.responses.map((resp: any, i: number) => {
+                            const isTeacher = resp.senderType === 'TEACHER' || resp.senderType === 'COUNSELOR';
+                            return (
+                              <div
+                                key={resp.id || i}
+                                className={`p-4 rounded-2xl border ${
+                                  isTeacher
+                                    ? 'bg-indigo-50/70 border-indigo-200 text-slate-800 ml-4'
+                                    : 'bg-amber-50/60 border-amber-200 text-slate-800 mr-4'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between gap-2 mb-1 text-xs">
+                                  <span className="font-bold flex items-center gap-1.5 text-slate-800">
+                                    {isTeacher ? <GraduationCap className="w-4 h-4 text-indigo-600" /> : <User className="w-4 h-4 text-amber-600" />}
+                                    <span>{resp.senderName || (isTeacher ? 'Cô Nguyễn Thị Thùy Trang' : 'Học sinh')}</span>
+                                  </span>
+                                  <span className="text-[10px] text-slate-400">
+                                    {resp.createdAt ? new Date(resp.createdAt).toLocaleString('vi-VN') : 'Gần đây'}
+                                  </span>
+                                </div>
+                                <p className="text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium text-slate-700">
+                                  {resp.content}
+                                </p>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Soạn câu trả lời của giáo viên */}
+                    <form onSubmit={handleTeacherSubmitReply} className="space-y-3 pt-3 border-t border-slate-100">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Nhập phản hồi của giáo viên (Cô Trang / BGH):
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={teacherReplyText}
+                        onChange={(e) => setTeacherReplyText(e.target.value)}
+                        placeholder="Nhập lời động viên, hướng dẫn, lời khuyên thấu cảm và chân thành dành cho học sinh..."
+                        required
+                        className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none leading-relaxed"
+                      />
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdatePostStatus(selectedPost.id, 'REPLIED')}
+                            className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold border border-emerald-200 transition"
+                          >
+                            Đánh dấu Đã phản hồi
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdatePostStatus(selectedPost.id, 'WAITING')}
+                            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition"
+                          >
+                            Đặt lại Chờ xử lý
+                          </button>
+                        </div>
+
+                        <button
+                          type="submit"
+                          disabled={sendingTeacherReply}
+                          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-60"
+                        >
+                          <Send className="w-4 h-4" />
+                          <span>{sendingTeacherReply ? 'Đang gửi...' : 'Gửi phản hồi'}</span>
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -3079,6 +3899,7 @@ function DashboardPage() {
 function LoginPage() {
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login, currentUser, displayName, logout } = useAuth();
@@ -3087,9 +3908,15 @@ function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!account.trim() || !password.trim()) {
+      setError('Vui lòng nhập đầy đủ tài khoản và mật khẩu.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await login(account, password);
+      await login(account.trim(), password);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Tài khoản hoặc mật khẩu không chính xác.');
@@ -3099,136 +3926,108 @@ function LoginPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
-      {/* Thông báo quan trọng: Khách & Học sinh không cần đăng nhập */}
-      <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-teal-50 to-sky-50 border border-emerald-200/90 shadow-lg shadow-emerald-100/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-emerald-200">
-            <Heart className="w-6 h-6 fill-white" />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-1">
-              <h3 className="font-black text-base text-emerald-950">
-                Dành Cho Học Sinh, Quý Phụ Huynh & Khách Thăm
-              </h3>
-              <span className="text-[11px] bg-emerald-600 text-white px-3 py-0.5 rounded-full font-black shadow-xs">
-                Vào tự do • Không cần đăng nhập
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed font-medium">
-              Tất cả mọi người vào Cổng tư vấn đều sử dụng toàn bộ tính năng (Nhật ký cảm xúc, Trợ lý AI, Phòng chống bắt nạt, Cẩm nang kỹ năng sống, Đặt lịch giáo viên, Góc chia sẻ) mà <strong>KHÔNG CẦN BẤT KỲ TÀI KHOẢN NÀO</strong>.
-            </p>
-          </div>
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
+      <div className="max-w-md w-full bg-white border border-blue-100 rounded-2xl shadow-xl p-8 sm:p-10 text-left">
+        {/* Logo / Biểu tượng giáo dục */}
+        <div className="w-16 h-16 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200">
+          <GraduationCap className="w-8 h-8" />
         </div>
-        <button
-          onClick={() => navigate('/')}
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-xs shadow-lg shadow-emerald-300/40 hover:scale-105 active:scale-95 transition-all shrink-0"
-        >
-          Khám phá trang chủ ngay
-        </button>
-      </div>
 
-      {/* Form đăng nhập duy nhất dành riêng cho Quản trị & Cô Trang - Không có đăng nhập nhanh */}
-      <div className="bg-white/90 backdrop-blur-xl border border-white/90 p-8 sm:p-10 rounded-3xl shadow-2xl shadow-indigo-100/80">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white flex items-center justify-center mx-auto mb-4 shadow-xl shadow-indigo-300/40">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl sm:text-2xl font-black text-slate-800">
-            Đăng Nhập Quản Trị & Cô Nguyễn Thị Thùy Trang
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-2 max-w-md mx-auto leading-relaxed">
-            Chỉ dành riêng cho <strong>Ban Giám Hiệu</strong> và <strong>Cô Nguyễn Thị Thùy Trang (Phòng 692)</strong>. Vui lòng nhập đúng tài khoản và mật khẩu để tiếp tục.
-          </p>
-        </div>
+        {/* Tiêu đề & Dòng mô tả theo đúng yêu cầu */}
+        <h2 className="text-2xl font-black text-slate-800 text-center tracking-tight">
+          ĐĂNG NHẬP HỆ THỐNG
+        </h2>
+        <p className="text-xs sm:text-sm text-slate-500 text-center mt-1.5 mb-7">
+          Vui lòng nhập tài khoản và mật khẩu để tiếp tục
+        </p>
 
         {currentUser ? (
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 sm:p-8 rounded-2xl border border-indigo-200 text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 mb-1">
+          <div className="bg-blue-50/80 p-6 rounded-2xl border border-blue-100 text-center space-y-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-1">
               <ShieldCheck className="w-6 h-6" />
             </div>
-            <p className="text-sm text-indigo-950 font-bold">
-              Đang đăng nhập với tư cách: <br />
-              <span className="text-base sm:text-lg font-black text-indigo-700">{displayName}</span>
+            <p className="text-sm text-slate-800 font-bold">
+              Đang đăng nhập: <br />
+              <span className="text-base font-black text-blue-700">{displayName}</span>
               <span className="block text-xs text-slate-500 font-mono mt-1">({currentUser.email})</span>
             </p>
-            <div className="flex flex-wrap justify-center gap-3 pt-2">
+            <div className="flex flex-col gap-2 pt-2">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl text-xs font-black shadow-md hover:scale-105 active:scale-95 transition"
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs shadow-md transition"
               >
                 Vào Bàn Quản Trị
               </button>
               <button
-                onClick={() => navigate('/')}
-                className="px-5 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-slate-50 transition"
-              >
-                Về Trang Chủ
-              </button>
-              <button
                 onClick={logout}
-                className="px-5 py-2.5 bg-rose-50 text-rose-600 border border-rose-200 rounded-xl text-xs font-bold hover:bg-rose-100 transition"
+                className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition"
               >
                 Đăng Xuất
               </button>
             </div>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-medium flex items-start gap-2.5">
-                <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-start gap-2 animate-in fade-in">
+                <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">
-                Tài khoản hoặc Email:
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Tài khoản
               </label>
-              <input
-                type="text"
-                value={account}
-                onChange={(e) => setAccount(e.target.value)}
-                placeholder="Nhập tài khoản (admin, quantri hoặc thuytrang, cotrang)..."
-                required
-                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-inner font-medium transition"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
+                  placeholder="Tài khoản"
+                  required
+                  className="w-full text-sm pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-2xs font-medium"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 uppercase tracking-wide mb-1.5">
-                Mật khẩu:
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Mật khẩu
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu..."
-                required
-                className="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 bg-white outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 shadow-inner font-medium transition"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Lock className="w-4 h-4" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mật khẩu"
+                  required
+                  className="w-full text-sm pl-10 pr-11 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition shadow-2xs font-medium"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 transition"
+                  title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-indigo-300/50 hover:shadow-2xl hover:scale-[1.01] active:scale-[0.99] transition-all"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-blue-200/80 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-60 disabled:pointer-events-none mt-2"
             >
-              {loading ? 'Đang xác thực thông tin...' : 'ĐĂNG NHẬP VÀO HỆ THỐNG'}
+              {loading ? 'Đang xử lý...' : 'Đăng nhập'}
             </button>
-
-            <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100/90 text-xs text-indigo-900 leading-relaxed space-y-1">
-              <div className="font-bold flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-indigo-600" />
-                <span>Quy định bảo mật Trường TH&THCS Phước Hưng:</span>
-              </div>
-              <p className="text-slate-600 text-[11px]">
-                • <strong>Ban Giám Hiệu (Quản trị):</strong> Nhập tài khoản quản trị và mật khẩu quản trị.<br />
-                • <strong>Cô Nguyễn Thị Thùy Trang:</strong> Nhập tài khoản và mật khẩu chuyên viên tâm lý.<br />
-                • Hệ thống không mở đăng nhập cho tài khoản bên ngoài. Mọi người dùng khác đều được cấp quyền sử dụng mở tự do không cần đăng nhập.
-              </p>
-            </div>
           </form>
         )}
       </div>

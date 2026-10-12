@@ -25,6 +25,7 @@ import { askCompanionAI } from '../gemini.ts';
 import {
   createSignedToken,
   generateSecureTicketCode,
+  hashSecretCode,
   sanitizeText,
   isValidDateString,
   isValidTimeString,
@@ -1417,4 +1418,216 @@ apiRouter.get('/audit-logs', requireAuth, requireRoles('ADMIN'), async (req: Aut
     console.error('[AUDIT_GET_ERROR]', err);
     return res.status(500).json({ success: false, message: 'Lỗi tải nhật ký kiểm toán.' });
   }
+});
+
+// ==========================================
+// 8. TÂM SỰ HỌC SINH (GÓC CHIA SẺ & TRẢI LÒNG)
+// ==========================================
+
+// 8.1. Học sinh gửi tâm sự (KHÔNG cần đăng nhập, tạo mã bí mật ngẫu nhiên cao)
+apiRouter.post('/posts/submit', rateLimit(15, 60000), async (req: Request, res: Response) => {
+  const { title, content, isAnonymous, studentName, recipient } = req.body;
+
+  if (!title || typeof title !== 'string' || !title.trim()) {
+    return res.status(400).json({ success: false, message: 'Vui lòng nhập tiêu đề tâm sự.' });
+  }
+  if (!content || typeof content !== 'string' || !content.trim()) {
+    return res.status(400).json({ success: false, message: 'Vui lòng nhập nội dung tâm sự.' });
+  }
+
+  const cleanTitle = sanitizeText(title).trim();
+  const cleanContent = sanitizeText(content).trim();
+  if (cleanContent.length < 5 || cleanContent.length > 5000) {
+    return res.status(400).json({ success: false, message: 'Nội dung tâm sự từ 5 đến 5000 ký tự.' });
+  }
+
+  // Tạo mã tra cứu ngẫu nhiên bí mật độ entropy cao: TS-XXXX-XXXX
+  const secretCode = generateSecureTicketCode('TS');
+  const secretHash = hashSecretCode(secretCode);
+
+  const cleanAuthor = isAnonymous ? 'Học sinh ẩn danh' : (sanitizeText(studentName).trim() || 'Học sinh');
+  const cleanRecipient = sanitizeText(recipient).trim() || 'Cô Nguyễn Thị Thùy Trang (Phòng 692)';
+
+  const newPost = devStore.createPost({
+    title: cleanTitle,
+    content: cleanContent,
+    author: cleanAuthor,
+    recipient: cleanRecipient,
+    secretHash,
+    status: 'WAITING',
+  });
+
+  return res.status(201).json({
+    success: true,
+    message: 'Tâm sự của em đã được gửi an toàn đến Cô Trang!',
+    secretCode, // Trả về MỘT LẦN DUY NHẤT cho học sinh lưu
+    post: {
+      id: newPost.id,
+      title: newPost.title,
+      status: newPost.status,
+      createdAt: newPost.createdAt
+    }
+  });
+});
+
+// 8.2. Học sinh tra cứu tâm sự và câu trả lời của giáo viên bằng mã bí mật
+apiRouter.post('/posts/track', rateLimit(25, 60000), async (req: Request, res: Response) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+
+  if (isLookupBlocked(ip)) {
+    return res.status(429).json({
+      success: false,
+      message: 'Bạn đã thử tra cứu sai quá nhiều lần. Vì an toàn bảo mật, tạm thời bị khóa trong 10 phút.',
+    });
+  }
+
+  const { secretCode } = req.body;
+  if (!secretCode || typeof secretCode !== 'string' || secretCode.trim().length < 6) {
+    trackFailedLookup(ip);
+    return res.status(400).json({ success: false, message: 'Mã tra cứu không hợp lệ.' });
+  }
+
+  const cleanCode = secretCode.trim().toUpperCase();
+  const hashed = hashSecretCode(cleanCode);
+
+  const post = devStore.findPostByHash(hashed);
+  if (!post) {
+    const isBlocked = trackFailedLookup(ip);
+    return res.status(404).json({
+      success: false,
+      message: isBlocked
+        ? 'Mã không đúng. Bạn đã bị tạm khóa 10 phút do thử nhiều lần.'
+        : 'Mã tra cứu không chính xác hoặc bài tâm sự không tồn tại. Vui lòng kiểm tra lại.',
+    });
+  }
+
+  resetLookupFailure(ip);
+
+  // Chỉ trả về dữ liệu an toàn, KHÔNG trả về secretHash
+  return res.json({
+    success: true,
+    data: {
+      id: post.id,
+      title: post.title,
+      content: post.content,
+      author: post.author,
+      recipient: post.recipient,
+      status: post.status,
+      createdAt: post.createdAt,
+      createdStr: post.createdStr,
+      responses: post.responses || []
+    }
+  });
+});
+
+// 8.3. Học sinh gửi tin nhắn tiếp theo trong cuộc trò chuyện bằng mã bí mật
+apiRouter.post('/posts/reply-student', rateLimit(20, 60000), async (req: Request, res: Response) => {
+  const { secretCode, message, senderName } = req.body;
+
+  if (!secretCode || typeof secretCode !== 'string') {
+    return res.status(400).json({ success: false, message: 'Mã tra cứu không hợp lệ.' });
+  }
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ success: false, message: 'Nội dung tin nhắn không được để trống.' });
+  }
+
+  const cleanCode = secretCode.trim().toUpperCase();
+  const hashed = hashSecretCode(cleanCode);
+
+  const post = devStore.findPostByHash(hashed);
+  if (!post) {
+    return res.status(404).json({ success: false, message: 'Không tìm thấy cuộc trò chuyện.' });
+  }
+
+  const cleanMessage = sanitizeText(message).trim();
+  const cleanSender = sanitizeText(senderName).trim() || 'Học sinh';
+
+  const newResp = devStore.addPostResponse(post.id, 'STUDENT', cleanSender, cleanMessage);
+
+  return res.json({
+    success: true,
+    message: 'Đã gửi tin nhắn đến giáo viên thành công!',
+    response: newResp,
+    status: post.status
+  });
+});
+
+// 8.4. Giáo viên / Quản trị viên xem danh sách tất cả các bài tâm sự (YÊU CẦU ĐĂNG NHẬP)
+apiRouter.get('/posts/admin-list', requireAuth, requireRoles('COUNSELOR', 'ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  const list = devStore.getPosts();
+  // Giấu secretHash khỏi danh sách trả về để bảo vệ học sinh
+  const sanitizedList = list.map(p => ({
+    id: p.id,
+    title: p.title,
+    content: p.content,
+    author: p.author,
+    recipient: p.recipient,
+    status: p.status || 'WAITING',
+    createdAt: p.createdAt,
+    createdStr: p.createdStr,
+    responses: p.responses || []
+  }));
+
+  return res.json({
+    success: true,
+    posts: sanitizedList
+  });
+});
+
+// 8.5. Giáo viên / Quản trị viên gửi phản hồi cho bài tâm sự
+apiRouter.post('/posts/admin-reply', requireAuth, requireRoles('COUNSELOR', 'ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  const { postId, content, status } = req.body;
+
+  if (!postId || !content || typeof content !== 'string' || !content.trim()) {
+    return res.status(400).json({ success: false, message: 'Vui lòng cung cấp mã bài viết và nội dung phản hồi.' });
+  }
+
+  const post = devStore.findPostById(postId);
+  if (!post) {
+    return res.status(404).json({ success: false, message: 'Không tìm thấy bài tâm sự.' });
+  }
+
+  const cleanContent = sanitizeText(content).trim();
+  const teacherName = req.user?.fullName || 'Cô Nguyễn Thị Thùy Trang (Phòng 692)';
+
+  const newResp = devStore.addPostResponse(postId, 'TEACHER', teacherName, cleanContent);
+  if (status) {
+    devStore.updatePostStatus(postId, sanitizeText(status));
+  }
+
+  devStore.addAuditLog(req.user?.uid || 'COUNSELOR', 'REPLY_POST', postId, `Giáo viên phản hồi bài: ${post.title}`);
+
+  return res.json({
+    success: true,
+    message: 'Đã gửi phản hồi cho học sinh thành công!',
+    response: newResp,
+    postStatus: post.status
+  });
+});
+
+// 8.6. Giáo viên / Quản trị viên cập nhật trạng thái bài tâm sự
+apiRouter.patch('/posts/admin-status/:id', requireAuth, requireRoles('COUNSELOR', 'ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  if (!status) {
+    return res.status(400).json({ success: false, message: 'Thiếu trạng thái cập nhật.' });
+  }
+
+  const updated = devStore.updatePostStatus(id, sanitizeText(status));
+  if (!updated) {
+    return res.status(404).json({ success: false, message: 'Không tìm thấy bài tâm sự.' });
+  }
+
+  return res.json({ success: true, message: 'Đã cập nhật trạng thái thành công.' });
+});
+
+// 8.7. Giáo viên / Quản trị viên xóa bài tâm sự
+apiRouter.delete('/posts/admin-delete/:id', requireAuth, requireRoles('COUNSELOR', 'ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
+  const { id } = req.params;
+  const deleted = devStore.deletePost(id);
+  if (!deleted) {
+    return res.status(404).json({ success: false, message: 'Không tìm thấy bài tâm sự.' });
+  }
+  return res.json({ success: true, message: 'Đã xóa bài tâm sự.' });
 });

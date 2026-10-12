@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Hàm kiểm tra quyền nhân sự nhà trường (Admin BGH & Cô Nguyễn Thị Thùy Trang)
+    function isStaff() {
+      return request.auth != null && (
+        request.auth.token.email.matches('.*admin.*') ||
+        request.auth.token.email.matches('.*quantri.*') ||
+        request.auth.token.email.matches('.*thuytrang.*') ||
+        request.auth.token.email.matches('.*cotrang.*') ||
+        request.auth.token.email.matches('.*c2phuochungap_trang.*')
+      );
+    }
+
+    // 1. Bộ sưu tập bài tâm sự (posts)
+    match /posts/{postId} {
+      // Học sinh không cần đăng nhập được gửi bài tâm sự mới
+      allow create: if request.resource.data.content is string &&
+                    request.resource.data.content.size() >= 5 &&
+                    request.resource.data.content.size() <= 5000;
+      
+      // Chỉ nhân sự nhà trường (Admin / Cô Trang) mới được đọc toàn bộ danh sách
+      allow list, read: if isStaff();
+      
+      // Chỉ nhân sự nhà trường mới được cập nhật (phản hồi, đổi trạng thái) hoặc xóa
+      allow update, delete: if isStaff();
+    }
+
+    // 2. Báo cáo bạo lực học đường (bullyingReports)
+    match /bullyingReports/{reportId} {
+      allow create: if true;
+      allow read, write: if isStaff();
+    }
+
+    // 3. Đăng ký tư vấn / lịch hẹn (appointments)
+    match /appointments/{appointmentId} {
+      allow create: if true;
+      allow read, write: if isStaff();
+    }
+
+    // 4. Tài khoản người dùng (users)
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && (request.auth.uid == userId || isStaff());
+    }
+  }
+}

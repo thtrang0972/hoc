@@ -585,6 +585,93 @@ class DevDataStore {
     return counts;
   }
 
+  // Posts (Tâm sự Góc chia sẻ & Trải lòng)
+  private posts: any[] = [
+    {
+      id: 'post_init_01',
+      title: 'Áp lực thi thử vào lớp 10',
+      content: 'Dạo này bài vở nhiều quá làm em hay bị mất ngủ và hồi hộp mỗi khi làm bài...',
+      author: 'Học sinh ẩn danh',
+      recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+      secretHash: '0d4817d23a1ec28f99c8f0fcba128a176d65c36391a27e753443a595bc0bca50', // code: TS-10A1-DEMO
+      status: 'REPLIED',
+      createdAt: new Date(Date.now() - 86400000).toISOString(),
+      createdStr: 'Hôm qua',
+      responses: [
+        {
+          id: 'res_01',
+          senderType: 'TEACHER',
+          senderName: 'Cô Nguyễn Thị Thùy Trang',
+          content: 'Chào em, cô rất hiểu áp lực của em lúc này. Đừng quá lo lắng nhé, hãy dành 15 phút tập hít thở sâu và chia nhỏ mục tiêu ôn tập mỗi ngày. Em có thể ghé phòng 692 để cô trò mình cùng trò chuyện thêm nhé!',
+          createdAt: new Date(Date.now() - 43200000).toISOString()
+        }
+      ]
+    }
+  ];
+
+  getPosts(): any[] {
+    return [...this.posts];
+  }
+
+  findPostById(id: string): any | null {
+    return this.posts.find(p => p.id === id) || null;
+  }
+
+  findPostByHash(hash: string): any | null {
+    return this.posts.find(p => p.secretHash === hash) || null;
+  }
+
+  createPost(data: any): any {
+    const newPost = {
+      ...data,
+      id: data.id || `post_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      status: data.status || 'WAITING',
+      createdAt: data.createdAt || new Date().toISOString(),
+      createdStr: data.createdStr || new Date().toLocaleString('vi-VN'),
+      responses: data.responses || []
+    };
+    this.posts.unshift(newPost);
+    return newPost;
+  }
+
+  addPostResponse(postId: string, senderType: 'TEACHER' | 'STUDENT', senderName: string, content: string): any | null {
+    const post = this.findPostById(postId);
+    if (!post) return null;
+    const newRes = {
+      id: `resp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      senderType,
+      senderName,
+      content,
+      createdAt: new Date().toISOString()
+    };
+    if (!post.responses) post.responses = [];
+    post.responses.push(newRes);
+    if (senderType === 'TEACHER') {
+      post.status = 'REPLIED';
+    } else {
+      post.status = 'WAITING';
+    }
+    post.updatedAt = new Date().toISOString();
+    return newRes;
+  }
+
+  updatePostStatus(postId: string, status: string): boolean {
+    const post = this.findPostById(postId);
+    if (!post) return false;
+    post.status = status;
+    post.updatedAt = new Date().toISOString();
+    return true;
+  }
+
+  deletePost(postId: string): boolean {
+    const idx = this.posts.findIndex(p => p.id === postId);
+    if (idx >= 0) {
+      this.posts.splice(idx, 1);
+      return true;
+    }
+    return false;
+  }
+
   // Audit Logs
   addAuditLog(username: string, actionType: string, targetResource: string, details?: string) {
     this.auditLogs.unshift({

@@ -63,6 +63,12 @@ export function generateSecureTicketCode(prefix: string = 'GLN'): string {
   return `${prefix}-${segment1}-${segment2}`;
 }
 
+// Hash tracking secret code securely with SHA-256
+export function hashSecretCode(code: string): string {
+  const normalized = code.trim().toUpperCase();
+  return crypto.createHash('sha256').update(`salt_phuochung_2026_${normalized}`).digest('hex');
+}
+
 // Input sanitizer against XSS and control characters
 export function sanitizeText(input: unknown): string {
   if (typeof input !== 'string') return '';
