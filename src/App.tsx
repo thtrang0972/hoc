@@ -147,6 +147,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+    // Lấy token xác thực từ backend API để phục vụ các yêu cầu quản trị viên
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: clean, password: pass }),
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        localStorage.setItem('auth_token', data.token);
+      }
+    } catch (e) {
+      console.warn('API login call token sync:', e);
+    }
+
     try {
       await signInWithEmailAndPassword(auth, emailToUse, pass);
     } catch {
@@ -184,6 +199,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = async () => {
+    localStorage.removeItem('auth_token');
     try {
       await signOut(auth);
     } catch {}
@@ -944,19 +960,46 @@ function MessageCounselorModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
   const [isAnon, setIsAnon] = useState(false);
   const [sentSuccess, setSentSuccess] = useState(false);
   const [sending, setSending] = useState(false);
+  const [secretCode, setSecretCode] = useState<string | null>(null);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageContent.trim()) return;
     setSending(true);
 
+    const authorText = isAnon ? 'Học sinh ẩn danh' : (senderName || 'Học sinh');
+    const fullContent = senderContact
+      ? `${messageContent.trim()}\n\n[Thông tin liên hệ lại: ${senderContact}]`
+      : messageContent.trim();
+
+    // 1. Đồng bộ lên backend API
+    try {
+      const res = await fetch('/api/posts/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: 'Lời nhắn gửi Cô Trang' + (senderName ? ` - ${senderName}` : ''),
+          content: fullContent,
+          isAnonymous: isAnon,
+          studentName: authorText,
+          recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.secretCode) {
+        setSecretCode(data.secretCode);
+      }
+    } catch (err) {
+      console.warn('Gửi qua API phụ:', err);
+    }
+
     const msgData = {
-      sender: isAnon ? 'Học sinh ẩn danh' : (senderName || 'Học sinh'),
+      sender: authorText,
       contact: senderContact || 'Không để lại thông tin liên lạc',
       content: messageContent.trim(),
       recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
       createdAt: serverTimestamp(),
-      dateStr: new Date().toLocaleString('vi-VN')
+      dateStr: new Date().toLocaleString('vi-VN'),
     };
 
     try {
@@ -993,6 +1036,7 @@ function MessageCounselorModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
           <button
             onClick={() => {
               setSentSuccess(false);
+              setSecretCode(null);
               onClose();
             }}
             className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition"
@@ -1010,9 +1054,17 @@ function MessageCounselorModal({ isOpen, onClose }: { isOpen: boolean; onClose: 
             <p className="text-xs sm:text-sm text-teal-800 leading-relaxed max-w-md mx-auto">
               Cảm ơn em đã tin tưởng gửi lời nhắn. Cô Nguyễn Thị Thùy Trang sẽ đọc tin nhắn và hỗ trợ em trong thời gian sớm nhất nhé!
             </p>
+            {secretCode && (
+              <div className="p-3 bg-white rounded-xl border border-teal-200 inline-block font-mono text-sm font-bold text-teal-800">
+                Mã tra cứu bảo mật: <span className="text-blue-700 select-all font-black">{secretCode}</span>
+              </div>
+            )}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
               <button
-                onClick={() => setSentSuccess(false)}
+                onClick={() => {
+                  setSentSuccess(false);
+                  setSecretCode(null);
+                }}
                 className="w-full sm:w-auto px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-black text-xs rounded-xl shadow-md transition"
               >
                 Gửi thêm tin nhắn khác
@@ -1141,9 +1193,9 @@ function Home({
           </p>
         </div>
 
-        {/* 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
-          {/* Nút 1: Góc Chia Sẻ Tâm Tư */}
+        {/* 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ (KHÔNG TRÙNG LẶP) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-14">
+          {/* Nút 1: Gửi Tâm Sự Đến Cô Trang */}
           <Link
             to="/chia-se"
             className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-300/70 hover:shadow-2xl hover:shadow-purple-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
@@ -1151,9 +1203,9 @@ function Home({
             <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-purple-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
               <MessageSquare className="w-7 h-7 text-white drop-shadow" />
             </div>
-            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Góc Chia Sẻ Tâm Tư</span>
+            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Gửi Tâm Sự Đến Cô Trang</span>
             <span className="text-xs text-purple-100 mt-1.5 font-medium text-center">
-              Tâm sự ẩn danh, trải lòng & tìm sự đồng cảm
+              Tâm sự ẩn danh, nhận mã tra cứu phản hồi bảo mật
             </span>
           </Link>
 
@@ -1171,60 +1223,31 @@ function Home({
             </span>
           </Link>
 
-          {/* Nút 3: Kỹ Năng Sống Học Đường (thay thế nút SOS 111 phía trên vì ở dưới đã có nút tròn nổi) */}
+          {/* Nút 3: Đặt Lịch Hẹn Gặp Cô Trang */}
           <Link
-            to="/ky-nang-song"
-            className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
+            to="/dang-ky-tu-van"
+            className="group relative flex flex-col items-center justify-center p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 border-t border-white/50 ring-2 ring-white/40 overflow-hidden"
           >
             <div className="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-teal-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-              <Sparkles className="w-7 h-7 text-white drop-shadow" />
+              <Calendar className="w-7 h-7 text-white drop-shadow" />
             </div>
-            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Kỹ Năng Sống Học Đường</span>
-            <span className="text-xs text-emerald-100 mt-1.5 font-medium text-center">
-              Cẩm nang ứng phó áp lực, tình bạn & cảm xúc
+            <span className="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Đặt Lịch Gặp Cô Trang</span>
+            <span className="text-xs text-teal-100 mt-1.5 font-medium text-center">
+              Gặp Cô Thùy Trang trực tiếp tại Phòng 692
             </span>
           </Link>
         </div>
 
-        {/* NÚT / BANNER NHẮN TIN CHO CÔ THÙY TRANG - THIẾT KẾ NỔI 3D SẮC NÉT & TƯƠI SÁNG */}
-        <div className="max-w-4xl mx-auto mb-14 p-5 sm:p-6 rounded-3xl bg-gradient-to-r from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-xl shadow-teal-200/80 border border-white/40 ring-2 ring-white/30 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5 text-left">
-            <div className="w-13 h-13 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 shadow-inner">
-              <MessageCircle className="w-7 h-7 text-white drop-shadow" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black leading-snug drop-shadow-xs">
-                  Nhắn Tin Riêng Tư Cho Cô Nguyễn Thị Thùy Trang
-                </h3>
-                <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-white/25 text-[10px] font-extrabold uppercase tracking-wider">
-                  Phòng 692
-                </span>
-              </div>
-              <p className="text-xs text-teal-100 mt-0.5 font-medium">
-                Chuyên viên Tham vấn Tâm lý Học đường • Bảo mật 100%, sẵn sàng lắng nghe mọi tâm sự của em
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={onOpenMessageCounselor}
-            className="px-6 py-3.5 rounded-2xl bg-white text-teal-900 hover:bg-teal-50 font-black text-xs sm:text-sm shadow-xl shadow-teal-900/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 shrink-0 border border-teal-100"
-          >
-            <Send className="w-4 h-4 text-teal-600" />
-            <span>Nhắn tin cho Cô Thùy Trang</span>
-          </button>
-        </div>
-
-        {/* 4 Feature Cards (Glassmorphism & Raised 3D Styling, Màu Sắc Tươi Sáng) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+        {/* 3 Khối Tính Năng Bổ Trợ (Mỗi tính năng chỉ xuất hiện đúng 1 lần - Tuyệt đối không trùng lặp) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left max-w-4xl mx-auto">
           <div
             onClick={() => navigate('/cam-xuc')}
-            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100"
+            className="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100"
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
-              <Smile className="w-5 h-5 fill-white/20" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
+              <Smile className="w-6 h-6 fill-white/20" />
             </div>
-            <h3 className="font-black text-amber-950 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
+            <h3 className="font-black text-amber-950 text-base mb-1">Nhật Ký Cảm Xúc</h3>
             <p className="text-xs text-amber-900/70 leading-relaxed">
               Điểm danh tâm trạng mỗi ngày qua các biểu tượng cảm xúc, theo dõi biểu đồ tâm lý học đường.
             </p>
@@ -1232,38 +1255,25 @@ function Home({
 
           <div
             onClick={() => navigate('/chong-bat-nat')}
-            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100"
+            className="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100"
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
+              <ShieldAlert className="w-6 h-6" />
             </div>
-            <h3 className="font-black text-rose-950 text-sm mb-1">Phòng Chống Bắt Nạt</h3>
+            <h3 className="font-black text-rose-950 text-base mb-1">Phòng Chống Bắt Nạt</h3>
             <p className="text-xs text-rose-900/70 leading-relaxed">
               Gửi báo cáo bạo lực học đường an toàn, ẩn danh 100%, bảo vệ học sinh TRƯỜNG TH&THCS PHƯỚC HƯNG ngay lập tức.
             </p>
           </div>
 
           <div
-            onClick={() => navigate('/dang-ky-tu-van')}
-            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-teal-50/90 to-emerald-50/80 backdrop-blur-xl border border-teal-200/80 shadow-md shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-teal-100"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center mb-3 shadow-md shadow-teal-300">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <h3 className="font-black text-teal-950 text-sm mb-1">Đặt Lịch Giáo Viên</h3>
-            <p className="text-xs text-teal-900/70 leading-relaxed">
-              Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692 (TRƯỜNG TH&THCS PHƯỚC HƯNG).
-            </p>
-          </div>
-
-          <div
             onClick={() => navigate('/ky-nang-song')}
-            className="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100"
+            className="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100"
           >
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
-              <BookOpen className="w-5 h-5" />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
+              <Sparkles className="w-6 h-6" />
             </div>
-            <h3 className="font-black text-purple-950 text-sm mb-1">Cẩm Nang Kỹ Năng Sống</h3>
+            <h3 className="font-black text-purple-950 text-base mb-1">Cẩm Nang Kỹ Năng Sống</h3>
             <p className="text-xs text-purple-900/70 leading-relaxed">
               Kho cẩm nang kiểm soát lo âu, bí quyết giải tỏa áp lực thi cử và xây dựng tình bạn lành mạnh.
             </p>
@@ -2162,7 +2172,7 @@ function ShareCornerPage() {
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-md shadow-blue-200 hover:scale-105 active:scale-95 transition flex items-center gap-2"
                 >
                   <Send className="w-4 h-4" />
-                  <span>{loadingPost ? 'Đang gửi...' : 'Đăng Tâm Sự'}</span>
+                  <span>{loadingPost ? 'Đang gửi...' : 'Gửi Tâm Sự Đến Cô Trang'}</span>
                 </button>
               </div>
             </form>
@@ -4041,6 +4051,7 @@ function LoginPage() {
 
 function AppContent() {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
+  const [counselorMsgOpen, setCounselorMsgOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50/70 via-sky-50/60 to-purple-50/70 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
@@ -4048,12 +4059,23 @@ function AppContent() {
       <TopFirebaseBar />
 
       {/* 2. Thanh điều hướng Navbar */}
-      <Navbar onOpenEmergency={() => setEmergencyOpen(true)} />
+      <Navbar
+        onOpenEmergency={() => setEmergencyOpen(true)}
+        onOpenMessageCounselor={() => setCounselorMsgOpen(true)}
+      />
 
       {/* 3. Nội dung trang chính */}
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={<Home onOpenEmergency={() => setEmergencyOpen(true)} />} />
+          <Route
+            path="/"
+            element={
+              <Home
+                onOpenEmergency={() => setEmergencyOpen(true)}
+                onOpenMessageCounselor={() => setCounselorMsgOpen(true)}
+              />
+            }
+          />
           <Route path="/cam-xuc" element={<EmotionPage />} />
           <Route path="/tro-ly-ai" element={<AIChatPage />} />
           <Route path="/chia-se" element={<ShareCornerPage />} />
@@ -4079,8 +4101,9 @@ function AppContent() {
         </button>
       </div>
 
-      {/* 5. Modal Khẩn cấp 111 */}
+      {/* 5. Modal Khẩn cấp 111 & Modal Nhắn tin Cô Thùy Trang */}
       <EmergencyModal isOpen={emergencyOpen} onClose={() => setEmergencyOpen(false)} />
+      <MessageCounselorModal isOpen={counselorMsgOpen} onClose={() => setCounselorMsgOpen(false)} />
 
       {/* 6. Footer */}
       <Footer />

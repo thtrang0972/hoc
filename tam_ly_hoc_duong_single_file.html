@@ -162,16 +162,16 @@
           </p>
         </div>
 
-        <!-- 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-16">
+        <!-- 3 NÚT CHÍNH LỚN NỔI BẬT THEO YÊU CẦU - THIẾT KẾ NỔI 3D & MÀU SẮC TƯƠI SÁNG RỰC RỠ (KHÔNG TRÙNG LẶP) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-4xl mx-auto mb-14">
           
-          <!-- Nút 1: Góc Chia Sẻ Tâm Tư -->
+          <!-- Nút 1: Gửi Tâm Sự Đến Cô Trang -->
           <button onclick="switchTab('share')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-600 text-white shadow-xl shadow-purple-300/70 hover:shadow-2xl hover:shadow-purple-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
             <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-purple-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
               <i data-lucide="message-square" class="w-7 h-7 text-white drop-shadow"></i>
             </div>
-            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Góc Chia Sẻ Tâm Tư</span>
-            <span class="text-xs text-purple-100 mt-1.5 font-medium text-center">Tâm sự ẩn danh, trải lòng & tìm sự đồng cảm</span>
+            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Gửi Tâm Sự Đến Cô Trang</span>
+            <span class="text-xs text-purple-100 mt-1.5 font-medium text-center">Tâm sự ẩn danh, nhận mã tra cứu phản hồi bảo mật</span>
           </button>
 
           <!-- Nút 2: Trò Chuyện Cùng Trợ Lý AI -->
@@ -183,47 +183,39 @@
             <span class="text-xs text-sky-100 mt-1.5 font-medium text-center">Tư vấn 24/7, xoa dịu áp lực & giảm stress</span>
           </button>
 
-          <!-- Nút 3: Kỹ Năng Sống Học Đường (thay vì nút SOS 111 phía trên vì ở dưới đã có nút nổi) -->
-          <button onclick="switchTab('skills')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
+          <!-- Nút 3: Đặt Lịch Hẹn Gặp Cô Trang (Phòng 692) -->
+          <button onclick="switchTab('appointment')" class="group p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-teal-500 via-emerald-600 to-cyan-600 text-white shadow-xl shadow-teal-300/70 hover:shadow-2xl hover:shadow-teal-400/80 hover:-translate-y-2 active:translate-y-0.5 transition-all duration-200 flex flex-col items-center justify-center border-t border-white/50 ring-2 ring-white/40">
             <div class="w-14 h-14 rounded-2xl bg-white/25 backdrop-blur-md flex items-center justify-center mb-3.5 shadow-md shadow-teal-900/20 group-hover:scale-110 group-hover:rotate-3 transition-transform">
-              <i data-lucide="sparkles" class="w-7 h-7 text-white drop-shadow"></i>
+              <i data-lucide="calendar" class="w-7 h-7 text-white drop-shadow"></i>
             </div>
-            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Kỹ Năng Sống Học Đường</span>
-            <span class="text-xs text-emerald-100 mt-1.5 font-medium text-center">Cẩm nang ứng phó áp lực, tình bạn & cảm xúc</span>
+            <span class="text-base sm:text-lg font-black tracking-wide drop-shadow-md">Đặt Lịch Gặp Cô Trang</span>
+            <span class="text-xs text-teal-100 mt-1.5 font-medium text-center">Gặp Cô Thùy Trang trực tiếp tại Phòng 692</span>
           </button>
         </div>
 
-        <!-- 4 Khối chức năng nổi bật - Thiết kế nổi 3D với màu sắc tươi sáng -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
-          <div onclick="switchTab('emotion')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
-              <i data-lucide="smile" class="w-5 h-5 fill-white/20"></i>
+        <!-- 3 Khối chức năng bổ trợ (Mỗi tính năng chỉ xuất hiện đúng 1 lần - Tuyệt đối không trùng lặp) -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-left max-w-4xl mx-auto">
+          <div onclick="switchTab('emotion')" class="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-amber-50/90 to-orange-50/80 backdrop-blur-xl border border-amber-200/80 shadow-md shadow-amber-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-amber-100">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-white flex items-center justify-center mb-3 shadow-md shadow-amber-300">
+              <i data-lucide="smile" class="w-6 h-6 fill-white/20"></i>
             </div>
-            <h3 class="font-black text-amber-950 text-sm mb-1">Nhật Ký Cảm Xúc</h3>
+            <h3 class="font-black text-amber-950 text-base mb-1">Nhật Ký Cảm Xúc</h3>
             <p class="text-xs text-amber-900/70 leading-relaxed">Điểm danh tâm trạng mỗi ngày với emoji, ghi nhật ký ẩn danh an toàn.</p>
           </div>
 
-          <div onclick="switchTab('bully')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
-              <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          <div onclick="switchTab('bully')" class="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-rose-50/90 to-pink-50/80 backdrop-blur-xl border border-rose-200/80 shadow-md shadow-rose-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-rose-100">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-red-600 text-white flex items-center justify-center mb-3 shadow-md shadow-rose-300">
+              <i data-lucide="shield-alert" class="w-6 h-6"></i>
             </div>
-            <h3 class="font-black text-rose-950 text-sm mb-1">Phòng Chống Bắt Nạt</h3>
+            <h3 class="font-black text-rose-950 text-base mb-1">Phòng Chống Bắt Nạt</h3>
             <p class="text-xs text-rose-900/70 leading-relaxed">Hòm thư báo cáo bạo lực học đường bảo mật 100% để thầy cô can thiệp ngay.</p>
           </div>
 
-          <div onclick="switchTab('appointment')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-teal-50/90 to-emerald-50/80 backdrop-blur-xl border border-teal-200/80 shadow-md shadow-teal-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-teal-100">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-600 text-white flex items-center justify-center mb-3 shadow-md shadow-teal-300">
-              <i data-lucide="calendar" class="w-5 h-5"></i>
+          <div onclick="switchTab('skills')" class="cursor-pointer p-6 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
+              <i data-lucide="sparkles" class="w-6 h-6"></i>
             </div>
-            <h3 class="font-black text-teal-950 text-sm mb-1">Đặt Lịch Giáo Viên</h3>
-            <p class="text-xs text-teal-900/70 leading-relaxed">Gặp Cô Nguyễn Thị Thùy Trang tại Phòng 692 (TRƯỜNG TH&THCS PHƯỚC HƯNG).</p>
-          </div>
-
-          <div onclick="switchTab('skills')" class="cursor-pointer p-5 rounded-3xl bg-gradient-to-b from-purple-50/90 to-fuchsia-50/80 backdrop-blur-xl border border-purple-200/80 shadow-md shadow-purple-200/50 hover:shadow-xl hover:-translate-y-1.5 active:translate-y-0.5 transition-all duration-200 ring-1 ring-purple-100">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-purple-500 to-fuchsia-600 text-white flex items-center justify-center mb-3 shadow-md shadow-purple-300">
-              <i data-lucide="sparkles" class="w-5 h-5"></i>
-            </div>
-            <h3 class="font-black text-purple-950 text-sm mb-1">Cẩm Nang Kỹ Năng Sống</h3>
+            <h3 class="font-black text-purple-950 text-base mb-1">Cẩm Nang Kỹ Năng Sống</h3>
             <p class="text-xs text-purple-900/70 leading-relaxed">Kho cẩm nang kiểm soát lo âu, bí quyết giải tỏa áp lực thi cử và xây dựng tình bạn.</p>
           </div>
         </div>
@@ -337,33 +329,63 @@
       </div>
     </section>
 
-    <!-- TAB 4: GÓC CHIA SẺ TÂM TƯ -->
+    <!-- TAB 4: GỬI TÂM SỰ ĐẾN CÔ TRANG & TRA CỨU PHẢN HỒI -->
     <section id="tab-share" class="tab-pane hidden max-w-4xl mx-auto py-6">
-      <div class="glass-card p-6 rounded-3xl shadow-xl mb-6">
+      <div class="glass-card p-6 sm:p-7 rounded-3xl shadow-xl mb-6">
         <h2 class="text-base sm:text-lg font-black text-slate-800 mb-1 flex items-center gap-2">
           <i data-lucide="message-square" class="w-5 h-5 text-indigo-600"></i>
-          <span>Góc Chia Sẻ & Trải Lòng Tuổi Học Trò</span>
+          <span>Gửi Tâm Sự Đến Cô Nguyễn Thị Thùy Trang (Phòng 692)</span>
         </h2>
-        <p class="text-xs text-slate-500 mb-4">Gửi gắm tâm sự để được lắng nghe và đồng cảm. Hoàn toàn có thể ẩn danh.</p>
+        <p class="text-xs text-slate-500 mb-4">Không gian an toàn tuyệt đối. Học sinh <strong class="text-indigo-600">KHÔNG CẦN ĐĂNG NHẬP</strong>. Sau khi gửi, em sẽ nhận một Mã tra cứu bảo mật để xem phản hồi của Cô Trang.</p>
+
+        <!-- Container khi gửi thành công -->
+        <div id="shareSuccessBox" class="hidden p-6 rounded-2xl bg-indigo-50 border border-indigo-200 text-center space-y-3 mb-4">
+          <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
+            <i data-lucide="check" class="w-6 h-6"></i>
+          </div>
+          <h3 class="font-black text-slate-800 text-base">Đã gửi tâm sự đến Cô Trang thành công!</h3>
+          <p class="text-xs text-slate-600">Mã tra cứu bảo mật của em (hãy lưu lại để xem phản hồi của cô):</p>
+          <div id="shareSecretCodeDisplay" class="font-mono text-2xl font-black text-indigo-700 select-all py-1"></div>
+          <button onclick="copyShareCode()" class="px-4 py-2 bg-white text-indigo-700 text-xs font-bold rounded-xl border border-indigo-200 hover:bg-indigo-50 shadow-xs">
+            Sao chép mã
+          </button>
+        </div>
 
         <form id="shareForm" onsubmit="handleCreateShare(event)" class="space-y-3">
-          <input type="text" id="shareTitle" required placeholder="Tiêu đề câu chuyện của em..." class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-300">
-          <textarea id="shareContent" required rows="3" placeholder="Nội dung tâm sự em muốn chia sẻ cùng các bạn..." class="w-full text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
+          <input type="text" id="shareTitle" required placeholder="Tiêu đề tâm sự gửi Cô Trang..." class="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-300">
+          <textarea id="shareContent" required rows="4" placeholder="Nội dung tâm sự gửi Cô Trang... Hãy thoải mái trút hết nỗi niềm trong lòng nhé!" class="w-full text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-300"></textarea>
           <div class="flex items-center justify-between">
             <label class="flex items-center gap-2 text-xs text-slate-600 font-semibold cursor-pointer">
               <input type="checkbox" id="shareAnon" checked class="w-4 h-4 rounded text-indigo-600">
-              <span>Đăng ẩn danh</span>
+              <span>Gửi ẩn danh</span>
             </label>
-            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-indigo-700 transition">
-              Đăng Tâm Sự
+            <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md hover:bg-indigo-700 transition">
+              Gửi Tâm Sự Đến Cô Trang
             </button>
           </div>
         </form>
       </div>
 
-      <div class="space-y-4" id="sharedPostsContainer">
-        <!-- Injected via JS -->
+      <!-- MỤC TRA CỨU PHẢN HỒI CỦA THẦY CÔ -->
+      <div class="glass-card p-6 sm:p-7 rounded-3xl shadow-xl mb-6">
+        <h3 class="text-base font-black text-slate-800 mb-1 flex items-center gap-2">
+          <i data-lucide="search" class="w-5 h-5 text-indigo-600"></i>
+          <span>TRA CỨU PHẢN HỒI CỦA THẦY CÔ</span>
+        </h3>
+        <p class="text-xs text-slate-500 mb-4">Nhập mã tra cứu của bài tâm sự để xem câu trả lời của Cô Trang.</p>
+
+        <form onsubmit="handleLookupShare(event)" class="flex gap-2 mb-4">
+          <input type="text" id="shareLookupInput" placeholder="Nhập mã tra cứu (VD: TS-XXXX-XXXX)..." required class="flex-1 text-xs sm:text-sm p-3 rounded-2xl border border-slate-200 font-mono uppercase font-bold outline-none focus:ring-2 focus:ring-indigo-300">
+          <button type="submit" class="px-5 py-3 bg-indigo-600 text-white font-bold text-xs rounded-2xl hover:bg-indigo-700 transition">
+            Xem phản hồi
+          </button>
+        </form>
+
+        <div id="shareLookupResult" class="hidden"></div>
       </div>
+
+      <!-- Danh sách bài tâm sự dành cho Quản trị viên & Cô Trang -->
+      <div id="sharedPostsContainer" class="space-y-4"></div>
     </section>
 
     <!-- TAB 5: CHỐNG BẮT NẠT HỌC ĐƯỜNG -->
@@ -1245,24 +1267,64 @@
     function renderSharedPosts() {
       const container = document.getElementById('sharedPostsContainer');
       if (!container) return;
-      container.innerHTML = sharedPosts.map(p => `
-        <div class="glass-card p-5 rounded-3xl shadow-md space-y-2">
-          <div class="flex items-start justify-between">
-            <div>
-              <h4 class="font-black text-slate-800 text-sm sm:text-base">${p.title}</h4>
-              <p class="text-[11px] text-indigo-600 font-bold">${p.author} • ${p.date || 'Hôm nay'}</p>
+      
+      const isStaff = currentUser && (currentUser.email.includes('admin') || currentUser.email.includes('thuytrang') || currentUser.email.includes('quantri'));
+      
+      if (!isStaff) {
+        container.innerHTML = `
+          <div class="glass-card p-6 rounded-3xl text-center space-y-2 border border-blue-200">
+            <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-700 flex items-center justify-center mx-auto">
+              <i data-lucide="shield-check" class="w-6 h-6"></i>
             </div>
-            <button onclick="saveItem('${p.title}', '${p.content.replace(/'/g, "\\'")}')" class="p-2 text-slate-400 hover:text-indigo-600 rounded-xl" title="Lưu bài">
-              <i data-lucide="bookmark" class="w-4 h-4"></i>
-            </button>
+            <h4 class="font-black text-slate-800 text-sm sm:text-base">Bảo Mật Tin Nhắn Tâm Sự Tuyệt Đối</h4>
+            <p class="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+              Toàn bộ bài tâm sự của học sinh gửi tới Cô Nguyễn Thị Thùy Trang được lưu trữ bảo mật 100%. Chỉ Quản trị viên (Ban Giám Hiệu) và Cô Thùy Trang đăng nhập mới có quyền đọc danh sách này.
+            </p>
           </div>
-          <p class="text-xs sm:text-sm text-slate-700 bg-slate-50/70 p-3 rounded-2xl leading-relaxed whitespace-pre-line">${p.content}</p>
-          <div class="flex items-center gap-2 text-xs text-rose-500 font-bold pt-1">
-            <i data-lucide="heart" class="w-3.5 h-3.5 fill-rose-500"></i>
-            <span>Đồng cảm cùng bạn</span>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      // Nếu là giáo viên / admin đăng nhập:
+      container.innerHTML = `
+        <div class="space-y-3">
+          <div class="flex items-center justify-between pb-2">
+            <h4 class="font-black text-slate-800 text-sm">Danh Sách Tâm Sự Học Sinh (Dành cho Quản Trị & Cô Trang)</h4>
+            <span class="text-xs font-bold bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full">${sharedPosts.length} tin nhắn</span>
           </div>
+          ${sharedPosts.length === 0 ? '<p class="text-xs text-slate-400 py-6 text-center">Chưa có bài tâm sự nào.</p>' : sharedPosts.map((p, idx) => `
+            <div class="glass-card p-5 rounded-3xl shadow-sm space-y-3 border border-slate-200">
+              <div class="flex items-start justify-between">
+                <div>
+                  <h4 class="font-black text-slate-800 text-base">${p.title}</h4>
+                  <p class="text-[11px] text-indigo-600 font-bold">${p.author} • ${p.date || 'Gần đây'} • Mã: <span class="font-mono text-indigo-800">${p.secretCode || 'Chưa có'}</span></p>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${p.status === 'REPLIED' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${p.status === 'REPLIED' ? 'Đã phản hồi' : 'Chờ phản hồi'}</span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-700 bg-slate-50 p-3 rounded-2xl whitespace-pre-line leading-relaxed">${p.content}</p>
+              
+              <!-- Danh sách câu trả lời của giáo viên -->
+              ${p.responses && p.responses.length > 0 ? `
+                <div class="space-y-2 pt-2 border-t border-slate-100">
+                  <span class="text-[11px] font-bold text-slate-500">Phản hồi của Cô Trang:</span>
+                  ${p.responses.map(r => `
+                    <div class="p-3 bg-blue-50/80 rounded-xl text-xs text-blue-900 border border-blue-100">
+                      <strong>${r.senderName}:</strong> ${r.content}
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <!-- Ô trả lời nhanh -->
+              <div class="pt-2 flex gap-2">
+                <input type="text" id="teacherReplyInput_${idx}" placeholder="Nhập câu trả lời gửi học sinh..." class="flex-1 text-xs p-2 rounded-xl border border-slate-200 outline-none">
+                <button onclick="handleTeacherReplySingle(${idx})" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700">Gửi phản hồi</button>
+              </div>
+            </div>
+          `).join('')}
         </div>
-      `).join('');
+      `;
       lucide.createIcons();
     }
 
@@ -1390,18 +1452,41 @@
       renderEmotionHistory();
     }
 
+    let lastCreatedSecretCode = '';
+    function copyShareCode() {
+      if (lastCreatedSecretCode) {
+        navigator.clipboard.writeText(lastCreatedSecretCode);
+        alert('Đã sao chép mã: ' + lastCreatedSecretCode);
+      }
+    }
+
+    function generateSecretCode() {
+      const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+      let s1 = '', s2 = '';
+      for (let i = 0; i < 4; i++) {
+        s1 += chars.charAt(Math.floor(Math.random() * chars.length));
+        s2 += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return `TS-${s1}-${s2}`;
+    }
+
     function handleCreateShare(e) {
       e.preventDefault();
       const title = document.getElementById('shareTitle').value;
       const content = document.getElementById('shareContent').value;
       const isAnon = document.getElementById('shareAnon').checked;
+      const code = generateSecretCode();
+      lastCreatedSecretCode = code;
 
       const newPost = {
         id: 'post_' + Date.now(),
         title,
         content,
-        author: isAnon ? 'Bạn học ẩn danh' : (currentUser ? currentUser.email : 'Học sinh'),
-        date: 'Vừa xong'
+        author: isAnon ? 'Học sinh ẩn danh' : (currentUser ? currentUser.email : 'Học sinh'),
+        date: new Date().toLocaleDateString('vi-VN') + ' ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+        secretCode: code,
+        status: 'WAITING',
+        responses: []
       };
 
       sharedPosts.unshift(newPost);
@@ -1413,8 +1498,102 @@
 
       document.getElementById('shareTitle').value = '';
       document.getElementById('shareContent').value = '';
-      alert('Đã đăng bài chia sẻ thành công!');
+
+      const box = document.getElementById('shareSuccessBox');
+      const disp = document.getElementById('shareSecretCodeDisplay');
+      if (box && disp) {
+        disp.innerText = code;
+        box.classList.remove('hidden');
+        box.scrollIntoView({ behavior: 'smooth' });
+      }
+
       renderSharedPosts();
+    }
+
+    function handleLookupShare(e) {
+      e.preventDefault();
+      const code = document.getElementById('shareLookupInput').value.trim().toUpperCase();
+      const resContainer = document.getElementById('shareLookupResult');
+      if (!resContainer) return;
+
+      const found = sharedPosts.find(p => p.secretCode && p.secretCode.toUpperCase() === code);
+      if (!found) {
+        resContainer.innerHTML = `
+          <div class="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            Không tìm thấy bài tâm sự tương ứng với mã "${code}". Vui lòng kiểm tra lại chính xác từng ký tự.
+          </div>
+        `;
+        resContainer.classList.remove('hidden');
+        return;
+      }
+
+      const isReplied = found.status === 'REPLIED' || (found.responses && found.responses.length > 0);
+      resContainer.innerHTML = `
+        <div class="p-5 rounded-2xl bg-indigo-50/80 border border-indigo-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-slate-800 text-sm">${found.title}</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isReplied ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+              ${isReplied ? 'Đã có phản hồi' : 'Đang chờ Cô Trang phản hồi'}
+            </span>
+          </div>
+          <p class="text-xs text-slate-700 bg-white p-3 rounded-xl border border-slate-200 leading-relaxed whitespace-pre-line">${found.content}</p>
+          
+          <div class="space-y-2 pt-2 border-t border-indigo-100">
+            <h5 class="text-xs font-bold text-indigo-900">Phản hồi từ Cô Trang:</h5>
+            ${(!found.responses || found.responses.length === 0) ? `
+              <p class="text-xs text-slate-500 italic">Cô Trang đã tiếp nhận tâm sự và đang chuẩn bị phản hồi cho em nhé!</p>
+            ` : found.responses.map(r => `
+              <div class="p-3 bg-white rounded-xl border border-indigo-200 text-xs text-slate-800">
+                <span class="font-bold text-indigo-700">${r.senderName}:</span> ${r.content}
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="pt-2">
+            <div class="flex gap-2">
+              <input type="text" id="studentFollowUpInput" placeholder="Nhắn thêm cho cô Trang..." class="flex-1 text-xs p-2 rounded-xl border border-indigo-200 bg-white outline-none">
+              <button onclick="handleStudentFollowUp('${found.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700">Gửi tin nhắn</button>
+            </div>
+          </div>
+        </div>
+      `;
+      resContainer.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function handleStudentFollowUp(postId) {
+      const input = document.getElementById('studentFollowUpInput');
+      if (!input || !input.value.trim()) return;
+      const target = sharedPosts.find(p => p.id === postId);
+      if (target) {
+        if (!target.responses) target.responses = [];
+        target.responses.push({
+          senderName: target.author || 'Em học sinh',
+          content: input.value.trim(),
+          createdAt: new Date().toISOString()
+        });
+        localStorage.setItem('tamly_posts', JSON.stringify(sharedPosts));
+        document.getElementById('shareLookupInput').value = target.secretCode;
+        handleLookupShare(new Event('submit'));
+      }
+    }
+
+    function handleTeacherReplySingle(idx) {
+      const input = document.getElementById(`teacherReplyInput_${idx}`);
+      if (!input || !input.value.trim()) return;
+      const target = sharedPosts[idx];
+      if (target) {
+        if (!target.responses) target.responses = [];
+        target.responses.push({
+          senderName: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+          content: input.value.trim(),
+          createdAt: new Date().toISOString()
+        });
+        target.status = 'REPLIED';
+        localStorage.setItem('tamly_posts', JSON.stringify(sharedPosts));
+        renderSharedPosts();
+        alert('Đã gửi phản hồi đến học sinh!');
+      }
     }
 
     function handleSendBullyReport(e) {
