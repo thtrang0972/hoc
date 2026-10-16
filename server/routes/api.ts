@@ -1530,7 +1530,7 @@ apiRouter.post('/posts/track', rateLimit(25, 60000), async (req: Request, res: R
 
 // 8.3. Học sinh gửi tin nhắn tiếp theo trong cuộc trò chuyện bằng mã bí mật
 apiRouter.post('/posts/reply-student', rateLimit(20, 60000), async (req: Request, res: Response) => {
-  const { secretCode, message, senderName } = req.body;
+  const { secretCode, message, senderName, title, postContent } = req.body;
 
   if (!secretCode || typeof secretCode !== 'string') {
     return res.status(400).json({ success: false, message: 'Mã tra cứu không hợp lệ.' });
@@ -1542,13 +1542,21 @@ apiRouter.post('/posts/reply-student', rateLimit(20, 60000), async (req: Request
   const cleanCode = secretCode.trim().toUpperCase();
   const hashed = hashSecretCode(cleanCode);
 
-  const post = devStore.findPostByHash(hashed);
-  if (!post) {
-    return res.status(404).json({ success: false, message: 'Không tìm thấy cuộc trò chuyện.' });
-  }
-
+  let post = devStore.findPostByHash(hashed);
+  const cleanSender = sanitizeText(senderName || '').trim() || 'Học sinh';
   const cleanMessage = sanitizeText(message).trim();
-  const cleanSender = sanitizeText(senderName).trim() || 'Học sinh';
+
+  if (!post) {
+    // Tự động khôi phục post vào memory nếu post được tạo từ client/Firestore
+    post = devStore.createPost({
+      title: title ? sanitizeText(title).trim() : 'Tâm sự của học sinh',
+      content: postContent ? sanitizeText(postContent).trim() : 'Nội dung trao đổi',
+      author: cleanSender,
+      recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+      secretHash: hashed,
+      status: 'WAITING'
+    });
+  }
 
   const newResp = devStore.addPostResponse(post.id, 'STUDENT', cleanSender, cleanMessage);
 
@@ -1584,26 +1592,35 @@ apiRouter.get('/posts/admin-list', requireAuth, requireRoles('COUNSELOR', 'ADMIN
 
 // 8.5. Giáo viên / Quản trị viên gửi phản hồi cho bài tâm sự
 apiRouter.post('/posts/admin-reply', requireAuth, requireRoles('COUNSELOR', 'ADMIN'), async (req: AuthenticatedRequest, res: Response) => {
-  const { postId, content, status } = req.body;
+  const { postId, content, status, title, postContent, author } = req.body;
 
   if (!postId || !content || typeof content !== 'string' || !content.trim()) {
     return res.status(400).json({ success: false, message: 'Vui lòng cung cấp mã bài viết và nội dung phản hồi.' });
   }
 
-  const post = devStore.findPostById(postId);
+  let post = devStore.findPostById(postId);
   if (!post) {
-    return res.status(404).json({ success: false, message: 'Không tìm thấy bài tâm sự.' });
+    // Tự động khôi phục post vào devStore nếu post được tạo trên Firestore/localStorage
+    const postTitle = title ? sanitizeText(title).trim() : 'Bài tâm sự học sinh';
+    post = devStore.createPost({
+      title: postTitle,
+      content: postContent ? sanitizeText(postContent).trim() : 'Nội dung tâm sự',
+      author: author ? sanitizeText(author).trim() : 'Học sinh',
+      recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+      status: 'REPLIED'
+    });
+    post.id = postId;
   }
 
   const cleanContent = sanitizeText(content).trim();
   const teacherName = req.user?.fullName || 'Cô Nguyễn Thị Thùy Trang (Phòng 692)';
 
-  const newResp = devStore.addPostResponse(postId, 'TEACHER', teacherName, cleanContent);
+  const newResp = devStore.addPostResponse(post.id, 'TEACHER', teacherName, cleanContent);
   if (status) {
-    devStore.updatePostStatus(postId, sanitizeText(status));
+    devStore.updatePostStatus(post.id, sanitizeText(status));
   }
 
-  devStore.addAuditLog(req.user?.uid || 'COUNSELOR', 'REPLY_POST', postId, `Giáo viên phản hồi bài: ${post.title}`);
+  devStore.addAuditLog(req.user?.uid || 'COUNSELOR', 'REPLY_POST', post.id, `Giáo viên phản hồi bài: ${post.title}`);
 
   return res.json({
     success: true,
