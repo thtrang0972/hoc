@@ -1317,9 +1317,18 @@
               ` : ''}
 
               <!-- Ô trả lời nhanh -->
-              <div class="pt-2 flex gap-2">
-                <input type="text" id="teacherReplyInput_${idx}" placeholder="Nhập câu trả lời gửi học sinh..." class="flex-1 text-xs p-2 rounded-xl border border-slate-200 outline-none">
-                <button onclick="handleTeacherReplySingle(${idx})" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700">Gửi phản hồi</button>
+              <div class="pt-2 flex flex-col gap-2">
+                <div class="flex gap-2">
+                  <input type="text" id="teacherReplyInput_${idx}" placeholder="Nhập câu trả lời hoặc lời khuyên gửi học sinh..." class="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-indigo-400">
+                  <button onclick="handleTeacherReplySingle(${idx})" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 flex items-center gap-1.5 shrink-0">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                    <span>Phản hồi cho học sinh</span>
+                  </button>
+                </div>
+                <div id="teacherReplyNotice_${idx}" class="hidden text-xs text-emerald-800 font-bold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+                  <span>Đã gửi phản hồi thành công đến học sinh!</span>
+                </div>
               </div>
             </div>
           `).join('')}
@@ -1511,8 +1520,12 @@
     }
 
     function handleLookupShare(e) {
-      e.preventDefault();
-      const code = document.getElementById('shareLookupInput').value.trim().toUpperCase();
+      if (e && typeof e.preventDefault === 'function') {
+        try { e.preventDefault(); } catch(err){}
+      }
+      const codeInput = document.getElementById('shareLookupInput');
+      if (!codeInput) return;
+      const code = codeInput.value.trim().toUpperCase();
       const resContainer = document.getElementById('shareLookupResult');
       if (!resContainer) return;
 
@@ -1551,8 +1564,15 @@
 
           <div class="pt-2">
             <div class="flex gap-2">
-              <input type="text" id="studentFollowUpInput" placeholder="Nhắn thêm cho cô Trang..." class="flex-1 text-xs p-2 rounded-xl border border-indigo-200 bg-white outline-none">
-              <button onclick="handleStudentFollowUp('${found.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700">Gửi tin nhắn</button>
+              <input type="text" id="studentFollowUpInput" placeholder="Nhắn thêm cho cô Trang..." class="flex-1 text-xs p-2.5 rounded-xl border border-indigo-200 bg-white outline-none focus:ring-2 focus:ring-indigo-400">
+              <button onclick="handleStudentFollowUp('${found.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 flex items-center gap-1.5 shrink-0 cursor-pointer">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Phản hồi lại cho Cô Trang</span>
+              </button>
+            </div>
+            <div id="studentFollowUpNotice" class="hidden mt-2 text-xs text-emerald-800 font-bold bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+              <span>Tin nhắn phản hồi của em đã được gửi thành công đến Cô Trang!</span>
             </div>
           </div>
         </div>
@@ -1564,7 +1584,7 @@
     function handleStudentFollowUp(postId) {
       const input = document.getElementById('studentFollowUpInput');
       if (!input || !input.value.trim()) return;
-      const target = sharedPosts.find(p => p.id === postId);
+      const target = sharedPosts.find(p => p.id === postId || (p.secretCode && p.secretCode === postId));
       if (target) {
         if (!target.responses) target.responses = [];
         target.responses.push({
@@ -1573,8 +1593,20 @@
           createdAt: new Date().toISOString()
         });
         localStorage.setItem('tamly_posts', JSON.stringify(sharedPosts));
+        if (fbDb && target.id) {
+          try {
+            fbDb.collection('posts').doc(target.id).update({
+              responses: target.responses
+            });
+          } catch(err){}
+        }
         document.getElementById('shareLookupInput').value = target.secretCode;
-        handleLookupShare(new Event('submit'));
+        handleLookupShare(null);
+        const notice = document.getElementById('studentFollowUpNotice');
+        if (notice) {
+          notice.classList.remove('hidden');
+          setTimeout(() => notice && notice.classList.add('hidden'), 4000);
+        }
       }
     }
 
@@ -1591,8 +1623,20 @@
         });
         target.status = 'REPLIED';
         localStorage.setItem('tamly_posts', JSON.stringify(sharedPosts));
+        if (fbDb && target.id) {
+          try {
+            fbDb.collection('posts').doc(target.id).update({
+              status: 'REPLIED',
+              responses: target.responses
+            });
+          } catch(err){}
+        }
         renderSharedPosts();
-        alert('Đã gửi phản hồi đến học sinh!');
+        const notice = document.getElementById(`teacherReplyNotice_${idx}`);
+        if (notice) {
+          notice.classList.remove('hidden');
+          setTimeout(() => notice && notice.classList.add('hidden'), 4000);
+        }
       }
     }
 

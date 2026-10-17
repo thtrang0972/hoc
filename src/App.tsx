@@ -2441,11 +2441,11 @@ function ShareCornerPage() {
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    disabled={sendingReply}
-                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-60"
+                    disabled={sendingReply || !studentReply.trim()}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     <Send className="w-4 h-4" />
-                    <span>{sendingReply ? 'Đang gửi tin nhắn...' : 'Gửi tin nhắn'}</span>
+                    <span>{sendingReply ? 'Đang gửi phản hồi...' : 'Phản hồi lại cho Cô Trang'}</span>
                   </button>
                 </div>
               </form>
@@ -2563,10 +2563,10 @@ function ShareCornerPage() {
                           type="button"
                           disabled={sendingStaffReply[post.id] || !(staffReplyText[post.id] || '').trim()}
                           onClick={() => handleStaffReplyPost(post)}
-                          className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 disabled:opacity-50"
+                          className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                         >
                           <Send className="w-3.5 h-3.5" />
-                          <span>{sendingStaffReply[post.id] ? 'Đang gửi phản hồi...' : 'Gửi câu trả lời'}</span>
+                          <span>{sendingStaffReply[post.id] ? 'Đang gửi phản hồi...' : 'Phản hồi cho học sinh'}</span>
                         </button>
                       </div>
                     </div>
@@ -3485,6 +3485,7 @@ function DashboardPage() {
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [teacherReplyText, setTeacherReplyText] = useState('');
   const [sendingTeacherReply, setSendingTeacherReply] = useState(false);
+  const [teacherReplySuccessMsg, setTeacherReplySuccessMsg] = useState('');
 
   const fetchAllData = async () => {
     setLoading(true);
@@ -3534,6 +3535,7 @@ function DashboardPage() {
     if (!selectedPost || !teacherReplyText.trim()) return;
 
     setSendingTeacherReply(true);
+    setTeacherReplySuccessMsg('');
     const replyContent = teacherReplyText.trim();
     const counselorName = userRole === 'ADMIN' ? 'Ban Giám Hiệu / Quản trị viên' : 'Cô Nguyễn Thị Thùy Trang (Phòng 692)';
 
@@ -3549,7 +3551,10 @@ function DashboardPage() {
         body: JSON.stringify({
           postId: selectedPost.id,
           content: replyContent,
-          status: 'REPLIED'
+          status: 'REPLIED',
+          title: selectedPost.title,
+          postContent: selectedPost.content,
+          author: selectedPost.author
         })
       });
       const data = await res.json();
@@ -3590,7 +3595,7 @@ function DashboardPage() {
       localStorage.setItem('demo_posts', JSON.stringify(updatedList));
 
       setTeacherReplyText('');
-      alert('Đã gửi phản hồi thành công đến học sinh!');
+      setTeacherReplySuccessMsg('Đã gửi phản hồi thành công đến học sinh!');
     } catch {
       // Fallback
       const newResp = {
@@ -3613,7 +3618,7 @@ function DashboardPage() {
       localStorage.setItem('demo_posts', JSON.stringify(updatedList));
 
       setTeacherReplyText('');
-      alert('Đã lưu phản hồi của giáo viên!');
+      setTeacherReplySuccessMsg('Đã lưu phản hồi của giáo viên thành công!');
     } finally {
       setSendingTeacherReply(false);
     }
@@ -3920,11 +3925,15 @@ function DashboardPage() {
 
                       <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
                         <button
-                          onClick={() => setSelectedPost(p)}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+                          onClick={() => {
+                            setSelectedPost(p);
+                            setTeacherReplyText('');
+                            setTeacherReplySuccessMsg('');
+                          }}
+                          className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-indigo-200 transition flex items-center gap-1.5 cursor-pointer"
                         >
                           <MessageCircle className="w-4 h-4" />
-                          <span>{isReplied ? 'Xem & Tiếp tục trả lời' : 'Trả lời ngay'}</span>
+                          <span>{isReplied ? 'Xem & Phản hồi cho học sinh' : 'Phản hồi cho học sinh'}</span>
                         </button>
                         <button
                           onClick={() => handleDeletePost(p.id)}
@@ -4024,10 +4033,18 @@ function DashboardPage() {
                       )}
                     </div>
 
+                    {/* Thông báo gửi thành công */}
+                    {teacherReplySuccessMsg && (
+                      <div className="p-3.5 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                        <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{teacherReplySuccessMsg}</span>
+                      </div>
+                    )}
+
                     {/* Soạn câu trả lời của giáo viên */}
                     <form onSubmit={handleTeacherSubmitReply} className="space-y-3 pt-3 border-t border-slate-100">
                       <label className="block text-xs font-bold text-slate-700">
-                        Nhập phản hồi của giáo viên (Cô Trang / BGH):
+                        Nhập phản hồi của giáo viên (Cô Trang / BGH) gửi cho học sinh:
                       </label>
                       <textarea
                         rows={4}
@@ -4057,11 +4074,11 @@ function DashboardPage() {
 
                         <button
                           type="submit"
-                          disabled={sendingTeacherReply}
-                          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-60"
+                          disabled={sendingTeacherReply || !teacherReplyText.trim()}
+                          className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                         >
                           <Send className="w-4 h-4" />
-                          <span>{sendingTeacherReply ? 'Đang gửi...' : 'Gửi phản hồi'}</span>
+                          <span>{sendingTeacherReply ? 'Đang gửi phản hồi...' : 'Phản hồi cho học sinh'}</span>
                         </button>
                       </div>
                     </form>
