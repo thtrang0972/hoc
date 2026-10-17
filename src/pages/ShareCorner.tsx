@@ -1,27 +1,14 @@
 import React, { useState } from 'react';
 import { useAgeMode } from '../context/AgeModeContext';
+import { RequestTopic, TOPIC_LABELS, STATUS_LABELS, RequestMessage } from '../types';
 import {
-  RequestTopic,
-  TOPIC_LABELS,
-  STATUS_LABELS,
-  CounselingRequest,
-  RequestMessage,
-} from '../types';
-import {
-  MessageSquare,
-  Search,
-  Lock,
-  ShieldCheck,
-  Send,
-  CheckCircle2,
-  Clock,
-  User,
-  AlertCircle,
-  Copy,
-  Check,
-  Calendar,
-  Sparkles,
+  MessageSquare, Search, Lock, Send, CheckCircle2,
+  Clock, AlertCircle, Copy, Check
 } from 'lucide-react';
+
+// IMPORT CÁC HÀM CỦA FIREBASE
+import { db } from '../firebase'; 
+import { collection, addDoc, query, where, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export const ShareCorner: React.FC = () => {
   const { isPrimary, mode } = useAgeMode();
@@ -33,7 +20,6 @@ export const ShareCorner: React.FC = () => {
   const [studentAlias, setStudentAlias] = useState('');
   const [studentClass, setStudentClass] = useState('');
   const [contactMethod, setContactMethod] = useState('Gặp trực tiếp giờ ra chơi tại Phòng 204');
-  const [contactValue, setContactValue] = useState('');
   const [preferredTime, setPreferredTime] = useState('Giờ ra chơi tiết 2 hoặc tiết 3');
   const [content, setContent] = useState('');
   const [privacyAgreed, setPrivacyAgreed] = useState(true);
@@ -45,6 +31,7 @@ export const ShareCorner: React.FC = () => {
   const [trackCodeInput, setTrackCodeInput] = useState('');
   const [isTracking, setIsTracking] = useState(false);
   const [trackResult, setTrackResult] = useState<{
+    id: string; // ID thật của tài liệu trên Firestore
     requestCode: string;
     topic: string;
     gradeLevel: string;
@@ -59,117 +46,115 @@ export const ShareCorner: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
-  // 1. GỬI TÂM SỰ (Đồng bộ với /api/posts/submit)
+  // 1. GỬI PHIẾU LÊN FIREBASE
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/posts/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: TOPIC_LABELS[topic] || topic, // Truyền tên chủ đề làm title
-          content: content,
-          isAnonymous: isAnonymous,
-          studentName: studentAlias || (isAnonymous ? 'Học sinh ẩn danh' : 'Em học sinh'),
-          recipient: contactMethod,
-        }),
+      // Sinh mã bảo mật ngẫu nhiên
+      const secretCode = "TS-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+      const timestamp = new Date().toISOString();
+
+      // Ghi thẳng vào bộ sưu tập 'counseling_posts' trên Firestore
+      await addDoc(collection(db, 'counseling_posts'), {
+        secretCode: secretCode,
+        gradeLevel: mode,
+        topic: TOPIC_LABELS[topic] || topic,
+        isAnonymous: isAnonymous,
+        studentAlias: studentAlias || (isAnonymous ? 'Học sinh ẩn danh' : 'Em học sinh'),
+        studentClass: studentClass,
+        contactMethod: contactMethod,
+        preferredTime: preferredTime,
+        content: content,
+        status: 'RECEIVED',
+        createdAt: timestamp,
+        messages: [] // Mảng rỗng chứa tin nhắn 2 chiều sau này
       });
 
-      if (!res.ok) {
-        throw new Error(`Lỗi máy chủ: HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-      
-      if (data.success && data.secretCode) {
-        setSubmittedCode(data.secretCode);
-        setContent('');
-      } else {
-        alert(data.message || 'Chưa lưu được dữ liệu vào hệ thống, vui lòng thử lại.');
-      }
+      setSubmittedCode(secretCode);
+      setContent('');
     } catch (err) {
-      console.error("Lỗi khi gửi phiếu tư vấn:", err);
-      alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng hoặc thử lại sau!');
+      console.error("Lỗi khi lưu Firebase:", err);
+      alert('Không thể lưu dữ liệu. Vui lòng kiểm tra lại kết nối mạng!');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 2. TRA CỨU TIẾN ĐỘ (Đồng bộ với /api/posts/track)
+  // 2. TRA CỨU TỪ FIREBASE
   const handleTrackRequest = async (e?: React.FormEvent, codeToUse?: string) => {
     if (e) e.preventDefault();
-    const code = (codeToUse || trackCodeInput).trim();
+    const code = (codeToUse || trackCodeInput).trim().toUpperCase();
     if (!code) return;
 
     setIsTracking(true);
     setTrackError(null);
 
     try {
-      const res = await fetch(`/api/posts/track`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secretCode: code }),
-      });
-      
-      const data = await res.json();
-      if (data.success && data.data) {
-        const post = data.data;
-        // Ánh xạ dữ liệu trả về từ devStore vào giao diện
+      // Truy vấn tìm tài liệu có secretCode trùng khớp
+      const q = query(collection(db, 'counseling_posts'), where('secretCode', '==', code));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const docSnap = querySnapshot.docs[0];
+        const data = docSnap.data();
+        
         setTrackResult({
-          requestCode: code, 
-          topic: post.title,
-          gradeLevel: 'GENERAL',
-          status: post.status || 'WAITING',
-          studentAlias: post.author,
-          preferredTime: 'Giờ hành chính',
-          content: post.content,
-          createdAt: post.createdAt || post.createdStr || new Date().toISOString(),
-          messages: post.responses || [],
+          id: docSnap.id,
+          requestCode: data.secretCode,
+          topic: data.topic,
+          gradeLevel: data.gradeLevel,
+          status: data.status || 'RECEIVED',
+          studentAlias: data.studentAlias,
+          preferredTime: data.preferredTime,
+          content: data.content,
+          createdAt: data.createdAt,
+          messages: data.messages || [],
         });
       } else {
         setTrackResult(null);
-        setTrackError(data.message || 'Không tìm thấy bài tâm sự với mã này.');
+        setTrackError('Không tìm thấy bài tâm sự với mã tra cứu này.');
       }
-    } catch {
-      setTrackError('Lỗi kết nối khi tra cứu. Vui lòng kiểm tra lại mạng.');
+    } catch (error) {
+      console.error("Lỗi tra cứu Firebase:", error);
+      setTrackError('Lỗi kết nối máy chủ dữ liệu.');
     } finally {
       setIsTracking(false);
     }
   };
 
-  // 3. HỌC SINH GỬI PHẢN HỒI THÊM (Đồng bộ với /api/posts/reply-student)
+  // 3. GỬI TIN NHẮN PHẢN HỒI LÊN FIREBASE
   const handleSendFollowUpMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim() || !trackResult) return;
 
     setIsReplying(true);
     try {
-      const res = await fetch(`/api/posts/reply-student`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secretCode: trackResult.requestCode,
-          message: replyText.trim(),
-          senderName: trackResult.studentAlias || 'Em học sinh',
-          title: trackResult.topic,
-          postContent: trackResult.content,
-        }),
+      const postRef = doc(db, 'counseling_posts', trackResult.id);
+      const newMessage = {
+        id: Date.now().toString(),
+        senderType: 'STUDENT',
+        senderName: trackResult.studentAlias || 'Em học sinh',
+        message: replyText.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      // Cập nhật mảng messages trong tài liệu Firestore hiện tại
+      await updateDoc(postRef, {
+        messages: arrayUnion(newMessage)
       });
-      
-      const data = await res.json();
-      if (data.success && data.response) {
-        setTrackResult({
-          ...trackResult,
-          status: data.status || trackResult.status,
-          messages: [...trackResult.messages, data.response],
-        });
-        setReplyText('');
-      }
+
+      // Cập nhật lại giao diện
+      setTrackResult({
+        ...trackResult,
+        messages: [...trackResult.messages, newMessage as any],
+      });
+      setReplyText('');
     } catch (err) {
-      console.error(err);
+      console.error("Lỗi gửi tin nhắn Firebase:", err);
+      alert("Lỗi khi gửi lời nhắn.");
     } finally {
       setIsReplying(false);
     }
@@ -239,7 +224,7 @@ export const ShareCorner: React.FC = () => {
                   Phiếu Chia Sẻ Đã Được Gửi Thành Công!
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto">
-                  Thầy cô tại Phòng Tư vấn Tâm lý (Phòng 204) đã tiếp nhận an toàn. Hãy lưu lại mã bí mật bên dưới để theo dõi phản hồi của thầy cô nhé!
+                  Thầy cô đã tiếp nhận an toàn. Hãy lưu lại mã bí mật bên dưới để theo dõi phản hồi của thầy cô nhé!
                 </p>
               </div>
 
@@ -362,12 +347,8 @@ export const ShareCorner: React.FC = () => {
                     onChange={(e) => setContactMethod(e.target.value)}
                     className="w-full text-xs p-3.5 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-sky-500 bg-slate-50"
                   >
-                    <option value="Gặp trực tiếp giờ ra chơi tại Phòng 204">
-                      Gặp trực tiếp giờ ra chơi tại Phòng 204
-                    </option>
-                    <option value="Trao đổi qua mục Tra cứu theo mã phiếu này">
-                      Chỉ trao đổi qua mã tra cứu trên web
-                    </option>
+                    <option value="Gặp trực tiếp giờ ra chơi tại Phòng 204">Gặp trực tiếp tại Phòng 204</option>
+                    <option value="Trao đổi qua mục Tra cứu theo mã phiếu này">Chỉ trao đổi qua mã tra cứu trên web</option>
                     <option value="Hòm thư điện tử bảo mật">Hòm thư điện tử riêng</option>
                     <option value="Nhắn tin qua số điện thoại kín">Số điện thoại kín</option>
                   </select>
@@ -400,14 +381,10 @@ export const ShareCorner: React.FC = () => {
                   placeholder={
                     isPrimary
                       ? 'Em hãy viết ra những điều khiến em băn khoăn hay khó chịu ở trường hoặc ở nhà nhé...'
-                      : 'Mô tả tình huống đang xảy ra, cảm xúc của bạn và điều bạn mong muốn nhận được từ thầy cô tư vấn...'
+                      : 'Mô tả tình huống đang xảy ra, cảm xúc của bạn và điều bạn mong muốn nhận được từ thầy cô...'
                   }
                   className="w-full text-xs sm:text-sm p-4 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-sky-500 bg-slate-50"
                 />
-                <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-                  <span>Tối thiểu 10 ký tự</span>
-                  <span>Đã viết: {content.length} ký tự</span>
-                </div>
               </div>
 
               {/* Privacy agreement checkbox */}
@@ -420,7 +397,7 @@ export const ShareCorner: React.FC = () => {
                     className="w-4 h-4 mt-0.5 accent-sky-600 rounded cursor-pointer"
                   />
                   <span className="text-xs text-slate-600 leading-relaxed">
-                    Em xác nhận nội dung chia sẻ là trung thực và đồng ý để thầy cô tư vấn tâm lý học đường hỗ trợ theo quy trình bảo mật của trường.
+                    Em xác nhận nội dung chia sẻ là trung thực và đồng ý để thầy cô hỗ trợ theo quy trình bảo mật của trường.
                   </span>
                 </label>
               </div>
@@ -429,10 +406,10 @@ export const ShareCorner: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting || !content.trim() || !privacyAgreed}
-                className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-md shadow-sky-200 transition-all flex items-center justify-center gap-2 active:scale-99"
+                className="w-full py-4 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white rounded-2xl text-xs sm:text-sm font-bold shadow-md shadow-sky-200 transition-all flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
-                <span>{isSubmitting ? 'Đang gửi phiếu an toàn...' : 'Gửi phiếu chia sẻ ngay'}</span>
+                <span>{isSubmitting ? 'Đang lưu vào hệ thống an toàn...' : 'Gửi phiếu chia sẻ ngay'}</span>
               </button>
             </form>
           )}
@@ -442,10 +419,10 @@ export const ShareCorner: React.FC = () => {
       {/* TAB 2: TRACK TICKET */}
       {activeTab === 'TRACK' && (
         <div className="space-y-6">
-          {/* Tracking Search Input Card */}
+          {/* Tracking Search Input */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200">
             <h2 className="text-lg font-bold text-slate-900 mb-1">
-              Tra Cứu Trạng Thái & Lời Nhắn Của Thầy Cô
+              Tra Cứu Trạng Thái & Lời Nhắn
             </h2>
             <p className="text-xs text-slate-500 mb-4">
               Nhập mã định danh bắt đầu bằng <strong>TS-</strong> đã được cấp khi em gửi phiếu.
@@ -477,10 +454,9 @@ export const ShareCorner: React.FC = () => {
             )}
           </div>
 
-          {/* Ticket Detail & Two-way Conversation */}
+          {/* Ticket Detail & Messages */}
           {trackResult && (
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6 animate-in fade-in duration-200">
-              {/* Header Status */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
                 <div>
                   <div className="flex items-center gap-2">
@@ -497,28 +473,24 @@ export const ShareCorner: React.FC = () => {
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
                     Chủ đề: <strong>{trackResult.topic}</strong> • Người gửi:{' '}
-                    <strong>{trackResult.studentAlias || 'Học sinh ẩn danh'}</strong>
+                    <strong>{trackResult.studentAlias}</strong>
                   </p>
                 </div>
-
                 <div className="text-[11px] text-slate-400">
                   Gửi lúc: {new Date(trackResult.createdAt).toLocaleDateString('vi-VN')}
                 </div>
               </div>
 
-              {/* Status Explanation Box */}
               <div className="p-4 rounded-2xl bg-sky-50/70 border border-sky-100 text-xs text-slate-700 flex items-start gap-3">
                 <Clock className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-bold text-sky-950">Tiến trình xử lý:</h4>
                   <p className="text-slate-600 mt-0.5">
-                    {STATUS_LABELS[trackResult.status]?.desc ||
-                      'Thầy cô đang xem xét và đồng hành cùng em.'}
+                    {STATUS_LABELS[trackResult.status]?.desc || 'Thầy cô đang xem xét.'}
                   </p>
                 </div>
               </div>
 
-              {/* Original Content Snippet */}
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
                   Nội dung em đã gửi:
@@ -528,7 +500,6 @@ export const ShareCorner: React.FC = () => {
                 </p>
               </div>
 
-              {/* Two-Way Messages Thread */}
               <div className="space-y-4 pt-2">
                 <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-sky-600" />
@@ -537,7 +508,7 @@ export const ShareCorner: React.FC = () => {
 
                 {trackResult.messages.length === 0 ? (
                   <div className="p-6 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-                    Chưa có tin nhắn mới từ thầy cô. Thầy cô thường phản hồi trong vòng 24 giờ học đường. Em hãy quay lại sau nhé!
+                    Chưa có tin nhắn mới từ thầy cô. Thầy cô thường phản hồi trong vòng 24 giờ học đường.
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -567,7 +538,6 @@ export const ShareCorner: React.FC = () => {
                   </div>
                 )}
 
-                {/* Reply Form */}
                 <form onSubmit={handleSendFollowUpMessage} className="pt-2 flex gap-2">
                   <input
                     type="text"
