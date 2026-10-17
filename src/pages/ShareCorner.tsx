@@ -46,7 +46,7 @@ export const ShareCorner: React.FC = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [trackResult, setTrackResult] = useState<{
     requestCode: string;
-    topic: RequestTopic;
+    topic: string;
     gradeLevel: string;
     status: keyof typeof STATUS_LABELS;
     studentAlias?: string;
@@ -59,53 +59,46 @@ export const ShareCorner: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
-  // === HÀM ĐÃ ĐƯỢC CẬP NHẬT LOGIC BẮT LỖI ===
+  // 1. GỬI TÂM SỰ (Đồng bộ với /api/posts/submit)
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
 
     setIsSubmitting(true);
     try {
-      const res = await fetch('/api/counseling/request', {
+      const res = await fetch('/api/posts/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          gradeLevel: mode,
-          topic,
-          isAnonymous,
-          studentAlias: studentAlias || (isAnonymous ? 'Học sinh ẩn danh' : 'Em học sinh'),
-          studentClass,
-          contactMethod,
-          contactValue,
-          preferredTime,
-          content,
-          privacyAgreed,
+          title: TOPIC_LABELS[topic] || topic, // Truyền tên chủ đề làm title
+          content: content,
+          isAnonymous: isAnonymous,
+          studentName: studentAlias || (isAnonymous ? 'Học sinh ẩn danh' : 'Em học sinh'),
+          recipient: contactMethod,
         }),
       });
 
-      // BƯỚC QUAN TRỌNG: Chặn lỗi 404, 405, 500 từ server
       if (!res.ok) {
         throw new Error(`Lỗi máy chủ: HTTP ${res.status}`);
       }
 
       const data = await res.json();
       
-      if (data.success && data.requestCode) {
-        setSubmittedCode(data.requestCode);
+      if (data.success && data.secretCode) {
+        setSubmittedCode(data.secretCode);
         setContent('');
       } else {
         alert(data.message || 'Chưa lưu được dữ liệu vào hệ thống, vui lòng thử lại.');
       }
     } catch (err) {
       console.error("Lỗi khi gửi phiếu tư vấn:", err);
-      // Hiển thị thông báo lỗi thật cho học sinh
       alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng hoặc thử lại sau!');
     } finally {
       setIsSubmitting(false);
     }
   };
-  // =========================================
 
+  // 2. TRA CỨU TIẾN ĐỘ (Đồng bộ với /api/posts/track)
   const handleTrackRequest = async (e?: React.FormEvent, codeToUse?: string) => {
     if (e) e.preventDefault();
     const code = (codeToUse || trackCodeInput).trim();
@@ -115,13 +108,30 @@ export const ShareCorner: React.FC = () => {
     setTrackError(null);
 
     try {
-      const res = await fetch(`/api/counseling/track/${encodeURIComponent(code)}`);
+      const res = await fetch(`/api/posts/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secretCode: code }),
+      });
+      
       const data = await res.json();
       if (data.success && data.data) {
-        setTrackResult(data.data);
+        const post = data.data;
+        // Ánh xạ dữ liệu trả về từ devStore vào giao diện
+        setTrackResult({
+          requestCode: code, 
+          topic: post.title,
+          gradeLevel: 'GENERAL',
+          status: post.status || 'WAITING',
+          studentAlias: post.author,
+          preferredTime: 'Giờ hành chính',
+          content: post.content,
+          createdAt: post.createdAt || post.createdStr || new Date().toISOString(),
+          messages: post.responses || [],
+        });
       } else {
         setTrackResult(null);
-        setTrackError(data.message || 'Không tìm thấy phiếu với mã này.');
+        setTrackError(data.message || 'Không tìm thấy bài tâm sự với mã này.');
       }
     } catch {
       setTrackError('Lỗi kết nối khi tra cứu. Vui lòng kiểm tra lại mạng.');
@@ -130,25 +140,31 @@ export const ShareCorner: React.FC = () => {
     }
   };
 
+  // 3. HỌC SINH GỬI PHẢN HỒI THÊM (Đồng bộ với /api/posts/reply-student)
   const handleSendFollowUpMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyText.trim() || !trackResult) return;
 
     setIsReplying(true);
     try {
-      const res = await fetch(`/api/counseling/track/${trackResult.requestCode}/message`, {
+      const res = await fetch(`/api/posts/reply-student`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          secretCode: trackResult.requestCode,
           message: replyText.trim(),
           senderName: trackResult.studentAlias || 'Em học sinh',
+          title: trackResult.topic,
+          postContent: trackResult.content,
         }),
       });
+      
       const data = await res.json();
-      if (data.success && data.message) {
+      if (data.success && data.response) {
         setTrackResult({
           ...trackResult,
-          messages: [...trackResult.messages, data.message],
+          status: data.status || trackResult.status,
+          messages: [...trackResult.messages, data.response],
         });
         setReplyText('');
       }
@@ -432,7 +448,7 @@ export const ShareCorner: React.FC = () => {
               Tra Cứu Trạng Thái & Lời Nhắn Của Thầy Cô
             </h2>
             <p className="text-xs text-slate-500 mb-4">
-              Nhập mã định danh bắt đầu bằng <strong>GLN-</strong> đã được cấp khi em gửi phiếu.
+              Nhập mã định danh bắt đầu bằng <strong>TS-</strong> đã được cấp khi em gửi phiếu.
             </p>
 
             <form onSubmit={handleTrackRequest} className="flex gap-2">
@@ -440,7 +456,7 @@ export const ShareCorner: React.FC = () => {
                 type="text"
                 value={trackCodeInput}
                 onChange={(e) => setTrackCodeInput(e.target.value.toUpperCase())}
-                placeholder="Ví dụ: GLN-739218"
+                placeholder="Ví dụ: TS-H6W9-6KFA"
                 className="flex-1 text-xs sm:text-sm p-3.5 rounded-2xl border border-slate-200 focus:outline-hidden focus:ring-2 focus:ring-sky-500 uppercase font-mono font-bold"
               />
               <button
@@ -480,7 +496,7 @@ export const ShareCorner: React.FC = () => {
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
-                    Chủ đề: <strong>{TOPIC_LABELS[trackResult.topic] || trackResult.topic}</strong> • Người gửi:{' '}
+                    Chủ đề: <strong>{trackResult.topic}</strong> • Người gửi:{' '}
                     <strong>{trackResult.studentAlias || 'Học sinh ẩn danh'}</strong>
                   </p>
                 </div>
@@ -526,10 +542,10 @@ export const ShareCorner: React.FC = () => {
                 ) : (
                   <div className="space-y-3">
                     {trackResult.messages.map((m) => {
-                      const isCounselor = m.senderType === 'COUNSELOR';
+                      const isCounselor = m.senderType === 'TEACHER' || m.senderType === 'COUNSELOR';
                       return (
                         <div
-                          key={m.id}
+                          key={m.id || Math.random()}
                           className={`p-4 rounded-2xl border text-xs leading-relaxed ${
                             isCounselor
                               ? 'bg-sky-50/80 border-sky-200 text-slate-800'
