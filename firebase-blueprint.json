@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "Bài tâm sự của học sinh và phản hồi của giáo viên tư vấn",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "author": { "type": "string" },
+        "recipient": { "type": "string" },
+        "secretCode": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "createdStr": { "type": "string" },
+        "responses": { "type": "array" }
+      },
+      "required": ["content", "status"]
+    },
+    "BullyingReport": {
+      "title": "BullyingReport",
+      "description": "Báo cáo phòng chống bắt nạt học đường",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "detail": { "type": "string" },
+        "targetClass": { "type": "string" },
+        "contactInfo": { "type": "string" },
+        "urgency": { "type": "string" },
+        "status": { "type": "string" },
+        "code": { "type": "string" }
+      },
+      "required": ["detail"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "Đăng ký lịch hẹn tham vấn tâm lý",
+      "type": "object",
+      "properties": {
+        "counselorName": { "type": "string" },
+        "counselorId": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "type": { "type": "string" },
+        "note": { "type": "string" },
+        "contact": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["date", "note"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Danh sách bài tâm sự và đối thoại giữa học sinh và giáo viên"
+    },
+    "/bullyingReports/{reportId}": {
+      "schema": "BullyingReport",
+      "description": "Báo cáo bạo lực học đường cần can thiệp"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "Lịch hẹn tham vấn học sinh cần xác nhận"
+    }
+  }
+}

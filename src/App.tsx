@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, Link, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, Link, useLocation, Navigate } from 'react-router-dom';
 
 // Firebase SDK & Khởi tạo trực tiếp với project hinh123-fd678
 import { 
@@ -20,6 +20,7 @@ import {
   getDocs, 
   deleteDoc,
   doc, 
+  getDoc,
   query, 
   orderBy, 
   serverTimestamp, 
@@ -102,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user) {
         // Tự động phân vai theo email demo hoặc tên
         const email = user.email || '';
-        if (email.includes('admin') || email.includes('quantri')) {
+        if (email === 'tvdu8st@gmail.com' || email.includes('admin') || email.includes('quantri')) {
           setUserRole('ADMIN');
           setDisplayName('Quản trị viên hệ thống');
         } else if (email.includes('thuytrang') || email.includes('counselor')) {
@@ -128,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const clean = inputAccount.trim().toLowerCase();
     let emailToUse = clean;
 
-    const isAdmin = clean === 'admin' || clean === 'quantri' || clean.includes('admin') || clean.includes('quantri') || clean === 'bgh';
+    const isAdmin = clean === 'admin' || clean === 'quantri' || clean.includes('admin') || clean.includes('quantri') || clean === 'bgh' || clean === 'tvdu8st@gmail.com' || clean.includes('tvdu8st');
     const isCounselor = clean === 'thuytrang' || clean === 'cotrang' || clean.includes('thuytrang') || clean.includes('c2phuochungap_trang') || clean.includes('counselor');
 
     if (!isAdmin && !isCounselor) {
@@ -1802,6 +1803,7 @@ function ShareCornerPage() {
     setLoadingPost(true);
     setCreatedSecretCode(null);
 
+    const generatedCode = generateLocalSecretCode();
     const postPayload = {
       title: title.trim(),
       content: content.trim(),
@@ -1810,65 +1812,81 @@ function ShareCornerPage() {
       recipient: 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
     };
 
+    // 1. Lưu trực tiếp vào Cloud Firestore (Đảm bảo hoạt động 100% trên GitHub Pages & Hosting tĩnh)
+    let savedToFirestore = false;
     try {
-      // 1. Gửi qua secure backend API (được bảo vệ, hash mã an toàn)
-      const res = await fetch('/api/posts/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postPayload),
-      });
-      const data = await res.json();
-
-      if (data.success && data.secretCode) {
-        setCreatedSecretCode(data.secretCode);
-        setTitle('');
-        setContent('');
-        if (isStaff) fetchPosts();
-
-        // Đồng bộ song song lên Firestore
-        try {
-          await addDoc(collection(db, 'posts'), {
-            title: postPayload.title,
-            content: postPayload.content,
-            author: postPayload.studentName,
-            recipient: postPayload.recipient,
-            status: 'WAITING',
-            createdAt: serverTimestamp(),
-            createdStr: new Date().toLocaleString('vi-VN'),
-            secretCode: data.secretCode, // Dùng cho tra cứu nội bộ
-            responses: []
-          });
-        } catch (e) {
-          console.warn('Lưu phụ Firestore:', e);
-        }
-      } else {
-        throw new Error(data.message || 'Lỗi gửi bài');
-      }
-    } catch {
-      // Fallback khi offline
-      const fallbackCode = generateLocalSecretCode();
-      const fallback = {
-        id: 'post_' + Date.now(),
+      await setDoc(doc(db, 'posts', generatedCode), {
         title: postPayload.title,
         content: postPayload.content,
         author: postPayload.studentName,
         recipient: postPayload.recipient,
-        secretCode: fallbackCode,
         status: 'WAITING',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         createdStr: new Date().toLocaleString('vi-VN'),
+        secretCode: generatedCode,
         responses: []
-      };
-      const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
-      const updated = [fallback, ...local];
-      localStorage.setItem('demo_posts', JSON.stringify(updated));
-      setPosts(updated);
-      setCreatedSecretCode(fallbackCode);
-      setTitle('');
-      setContent('');
-    } finally {
-      setLoadingPost(false);
+      });
+      savedToFirestore = true;
+    } catch (err: any) {
+      console.warn('Lưu Firestore theo mã:', err);
+      try {
+        await addDoc(collection(db, 'posts'), {
+          title: postPayload.title,
+          content: postPayload.content,
+          author: postPayload.studentName,
+          recipient: postPayload.recipient,
+          status: 'WAITING',
+          createdAt: serverTimestamp(),
+          createdStr: new Date().toLocaleString('vi-VN'),
+          secretCode: generatedCode,
+          responses: []
+        });
+        savedToFirestore = true;
+      } catch (innerErr) {
+        console.warn('Lưu Firestore addDoc phụ:', innerErr);
+      }
     }
+
+    // 2. Thử đồng bộ qua Backend API nếu không phải GitHub Pages
+    try {
+      if (typeof window !== 'undefined' && !window.location.hostname.endsWith('github.io')) {
+        const res = await fetch('/api/posts/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(postPayload),
+        });
+        if (res.ok && res.status !== 405) {
+          await res.json().catch(() => null);
+        }
+      }
+    } catch (apiErr) {
+      // Backend API không khả dụng trên môi trường tĩnh, bỏ qua vì đã lưu Firestore
+      console.info('Backend API submit không hoạt động trên GitHub Pages:', apiErr);
+    }
+
+    // 3. Cập nhật localStorage dự phòng offline
+    const localPost = {
+      id: generatedCode,
+      title: postPayload.title,
+      content: postPayload.content,
+      author: postPayload.studentName,
+      recipient: postPayload.recipient,
+      secretCode: generatedCode,
+      status: 'WAITING',
+      createdAt: new Date().toISOString(),
+      createdStr: new Date().toLocaleString('vi-VN'),
+      responses: []
+    };
+    const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
+    const updated = [localPost, ...local];
+    localStorage.setItem('demo_posts', JSON.stringify(updated));
+    setPosts(updated);
+
+    setCreatedSecretCode(generatedCode);
+    setTitle('');
+    setContent('');
+    if (isStaff) fetchPosts();
+    setLoadingPost(false);
   };
 
   // Tra cứu phản hồi bằng mã bí mật
@@ -1881,49 +1899,71 @@ function ShareCornerPage() {
     setLookupError(null);
     setTrackedPost(null);
 
+    // 1. Kiểm tra trực tiếp trên Cloud Firestore bằng Document ID (clean)
     try {
-      // 1. Thử gọi qua Backend API trước
-      const res = await fetch('/api/posts/track', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secretCode: clean }),
-      });
-      const data = await res.json();
-
-      if (data.success && data.data) {
-        setTrackedPost({ ...data.data, secretCode: clean });
+      const docSnap = await getDoc(doc(db, 'posts', clean));
+      if (docSnap.exists()) {
+        const postData = docSnap.data();
+        setTrackedPost({ id: docSnap.id, ...postData, secretCode: postData.secretCode || clean });
         setIsLookingUp(false);
         return;
       }
-    } catch {
-      // Fallback kiểm tra Firestore hoặc localStorage
-    }
-
-    try {
-      // 2. Kiểm tra trên Firestore nếu backend đang dùng database khác
-      const q = query(collection(db, 'posts'));
-      const snapshot = await getDocs(q);
-      const found = snapshot.docs.find(d => {
-        const p = d.data();
-        return p.secretCode && p.secretCode.trim().toUpperCase() === clean;
-      });
-
-      if (found) {
-        setTrackedPost({ id: found.id, ...found.data(), secretCode: clean });
+    } catch (err: any) {
+      console.warn('Tra cứu Firestore getDoc:', err);
+      if (err?.code === 'unavailable') {
+        setLookupError('Không thể kết nối mạng đến cơ sở dữ liệu. Vui lòng kiểm tra lại đường truyền Internet của em.');
         setIsLookingUp(false);
         return;
       }
-    } catch {
-      // Bỏ qua lỗi firestore
     }
 
-    // 3. Kiểm tra localStorage fallback
+    // 2. Thử gọi backend API nếu có máy chủ
+    try {
+      if (typeof window !== 'undefined' && !window.location.hostname.endsWith('github.io')) {
+        const res = await fetch('/api/posts/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secretCode: clean }),
+        });
+        if (res.ok && res.status !== 405) {
+          const data = await res.json().catch(() => null);
+          if (data && data.success && data.data) {
+            setTrackedPost({ ...data.data, secretCode: clean });
+            setIsLookingUp(false);
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.info('Bỏ qua gọi API track khi chạy tĩnh:', err);
+    }
+
+    // 3. Nếu là giáo viên, cho phép tìm trong toàn bộ danh sách Firestore
+    if (isStaff) {
+      try {
+        const q = query(collection(db, 'posts'));
+        const snapshot = await getDocs(q);
+        const found = snapshot.docs.find(d => {
+          const p = d.data();
+          return (p.secretCode && p.secretCode.trim().toUpperCase() === clean) || d.id === clean;
+        });
+        if (found) {
+          setTrackedPost({ id: found.id, ...found.data(), secretCode: clean });
+          setIsLookingUp(false);
+          return;
+        }
+      } catch (e) {
+        console.warn('Tra cứu query Firestore:', e);
+      }
+    }
+
+    // 4. Kiểm tra localStorage fallback
     const local = JSON.parse(localStorage.getItem('demo_posts') || '[]');
     const matchLocal = local.find((p: any) => p.secretCode && p.secretCode.trim().toUpperCase() === clean);
     if (matchLocal) {
       setTrackedPost({ ...matchLocal, secretCode: clean });
     } else {
-      setLookupError('Mã tra cứu không chính xác hoặc bài tâm sự chưa được tạo. Vui lòng kiểm tra lại từng ký tự.');
+      setLookupError('Mã tra cứu không chính xác hoặc bài tâm sự chưa được tạo. Em vui lòng kiểm tra lại từng ký tự nhé!');
     }
     setIsLookingUp(false);
   };
@@ -1947,46 +1987,59 @@ function ShareCornerPage() {
       createdAt: new Date().toISOString(),
     };
 
-    // 1. Gửi qua Backend API
+    // 1. Cập nhật trực tiếp lên Cloud Firestore
+    const targetDocId = trackedPost.id || cleanCode;
     try {
-      const res = await fetch('/api/posts/reply-student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secretCode: cleanCode,
-          message: messageText,
-          senderName: trackedPost.author || 'Em học sinh',
-          title: trackedPost.title,
-          postContent: trackedPost.content
-        }),
+      const curResponses = trackedPost.responses || [];
+      await updateDoc(doc(db, 'posts', targetDocId), {
+        status: 'WAITING',
+        responses: [...curResponses, newMsg],
+        updatedAt: serverTimestamp()
       });
-      const data = await res.json();
-      if (data.success && data.response) {
-        newMsg.id = data.response.id || newMsg.id;
-        newMsg.createdAt = data.response.createdAt || newMsg.createdAt;
-      }
     } catch (err) {
-      console.warn('Lỗi gọi API reply-student:', err);
+      console.warn('Lỗi cập nhật Firestore khi học sinh phản hồi:', err);
+      try {
+        await setDoc(doc(db, 'posts', targetDocId), {
+          title: trackedPost.title || 'Bài tâm sự',
+          content: trackedPost.content || '',
+          author: trackedPost.author || 'Em học sinh',
+          recipient: trackedPost.recipient || 'Cô Nguyễn Thị Thùy Trang (Phòng 692)',
+          status: 'WAITING',
+          secretCode: cleanCode,
+          createdAt: serverTimestamp(),
+          createdStr: new Date().toLocaleString('vi-VN'),
+          responses: [...(trackedPost.responses || []), newMsg],
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+      } catch (innerErr) {
+        console.warn('Tạo bù Firestore post:', innerErr);
+      }
     }
 
-    // 2. Đồng bộ Firestore nếu có
+    // 2. Thử gửi qua backend API nếu không phải GitHub Pages
     try {
-      const q = query(collection(db, 'posts'));
-      const snapshot = await getDocs(q);
-      const matchDoc = snapshot.docs.find(d => {
-        const p = d.data();
-        return (p.secretCode && p.secretCode.trim().toUpperCase() === cleanCode) || d.id === trackedPost.id;
-      });
-      if (matchDoc) {
-        const curResp = matchDoc.data().responses || [];
-        await updateDoc(doc(db, 'posts', matchDoc.id), {
-          status: 'WAITING',
-          responses: [...curResp, newMsg],
-          updatedAt: serverTimestamp()
+      if (typeof window !== 'undefined' && !window.location.hostname.endsWith('github.io')) {
+        const res = await fetch('/api/posts/reply-student', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            secretCode: cleanCode,
+            message: messageText,
+            senderName: trackedPost.author || 'Em học sinh',
+            title: trackedPost.title,
+            postContent: trackedPost.content
+          }),
         });
+        if (res.ok && res.status !== 405) {
+          const data = await res.json().catch(() => null);
+          if (data && data.success && data.response) {
+            newMsg.id = data.response.id || newMsg.id;
+            newMsg.createdAt = data.response.createdAt || newMsg.createdAt;
+          }
+        }
       }
     } catch (err) {
-      console.warn('Đồng bộ Firestore post khi học sinh trả lời:', err);
+      console.info('Bỏ qua API reply-student trên môi trường tĩnh:', err);
     }
 
     const updatedPost = {
@@ -3665,13 +3718,45 @@ function DashboardPage() {
     return true;
   });
 
+  const [updatingReportId, setUpdatingReportId] = useState<string | null>(null);
+  const [reportActionMsg, setReportActionMsg] = useState('');
+  const [updatingAppointId, setUpdatingAppointId] = useState<string | null>(null);
+  const [appointActionMsg, setAppointActionMsg] = useState('');
+
   const handleUpdateReportStatus = async (id: string, newStatus: string) => {
+    setUpdatingReportId(id);
     try {
-      await updateDoc(doc(db, 'bullyingReports', id), { status: newStatus });
-      setBullyingList(bullyingList.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
-    } catch {
-      setBullyingList(bullyingList.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+      await updateDoc(doc(db, 'bullyingReports', id), { 
+        status: newStatus,
+        updatedAt: serverTimestamp() 
+      });
+    } catch (e) {
+      console.warn('Cập nhật Firestore bullyingReport:', e);
     }
+    setBullyingList((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+    const local = JSON.parse(localStorage.getItem('demo_bully_reports') || '[]');
+    localStorage.setItem('demo_bully_reports', JSON.stringify(local.map((r: any) => (r.id === id ? { ...r, status: newStatus } : r))));
+    setUpdatingReportId(null);
+    setReportActionMsg('Đã cập nhật trạng thái hồ sơ bạo lực học đường thành công!');
+    setTimeout(() => setReportActionMsg(''), 4000);
+  };
+
+  const handleUpdateAppointmentStatus = async (id: string, newStatus: string) => {
+    setUpdatingAppointId(id);
+    try {
+      await updateDoc(doc(db, 'appointments', id), { 
+        status: newStatus,
+        updatedAt: serverTimestamp() 
+      });
+    } catch (e) {
+      console.warn('Cập nhật Firestore appointment:', e);
+    }
+    setAppointList((prev) => prev.map((a) => (a.id === id ? { ...a, status: newStatus } : a)));
+    const local = JSON.parse(localStorage.getItem('demo_appointments') || '[]');
+    localStorage.setItem('demo_appointments', JSON.stringify(local.map((a: any) => (a.id === id ? { ...a, status: newStatus } : a))));
+    setUpdatingAppointId(null);
+    setAppointActionMsg('Đã cập nhật trạng thái lịch hẹn học sinh thành công!');
+    setTimeout(() => setAppointActionMsg(''), 4000);
   };
 
   // Nếu chưa đăng nhập với quyền Quản trị hoặc Cô Thùy Trang:
@@ -3699,6 +3784,20 @@ function DashboardPage() {
           <span>Quyền: {userRole}</span>
         </div>
       </div>
+
+      {/* Thông báo cập nhật thao tác nhanh */}
+      {reportActionMsg && (
+        <div className="mb-4 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{reportActionMsg}</span>
+        </div>
+      )}
+      {appointActionMsg && (
+        <div className="mb-4 p-3 rounded-2xl bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+          <span>{appointActionMsg}</span>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
@@ -3774,13 +3873,31 @@ function DashboardPage() {
                     <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-1">
                       <span>Lớp / Địa điểm: <strong>{r.targetClass || 'Chưa rõ'}</strong></span>
                       <span>Liên hệ: <strong>{r.contactInfo || 'Ẩn danh'}</strong></span>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleUpdateReportStatus(r.id, 'Đã xác minh & Xử lý an toàn')}
-                          className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold hover:bg-emerald-700"
-                        >
-                          Đánh dấu đã can thiệp
-                        </button>
+                      <div className="flex items-center gap-2">
+                        {r.status === 'Đã xác minh & Xử lý an toàn' ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black flex items-center gap-1 shadow-xs">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Đã can thiệp an toàn</span>
+                            </span>
+                            <button
+                              onClick={() => handleUpdateReportStatus(r.id, 'Cần tiếp tục theo dõi')}
+                              disabled={updatingReportId === r.id}
+                              className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-[10px] font-bold transition cursor-pointer"
+                            >
+                              Theo dõi lại
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => handleUpdateReportStatus(r.id, 'Đã xác minh & Xử lý an toàn')}
+                            disabled={updatingReportId === r.id}
+                            className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <span>{updatingReportId === r.id ? 'Đang cập nhật...' : 'Đánh dấu đã can thiệp'}</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -3812,9 +3929,38 @@ function DashboardPage() {
                         Thời gian: <strong>{a.date} ({a.time})</strong> • Liên hệ: {a.contact}
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl shrink-0">
-                      {a.status || 'Đã tiếp nhận'}
-                    </span>
+                    
+                    <div className="flex items-center gap-2 shrink-0">
+                      {(!a.status || a.status === 'Chờ xác nhận') ? (
+                        <button
+                          onClick={() => handleUpdateAppointmentStatus(a.id, 'Đã xác nhận & Sắp xếp')}
+                          disabled={updatingAppointId === a.id}
+                          className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-xl text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          <Clock className="w-3.5 h-3.5 animate-pulse" />
+                          <span>{updatingAppointId === a.id ? 'Đang duyệt...' : 'Chờ xác nhận (Bấm duyệt)'}</span>
+                        </button>
+                      ) : a.status === 'Đã xác nhận & Sắp xếp' ? (
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-teal-800 bg-teal-50 border border-teal-200 px-3 py-1 rounded-xl flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
+                            <span>Đã xác nhận</span>
+                          </span>
+                          <button
+                            onClick={() => handleUpdateAppointmentStatus(a.id, 'Đã hoàn thành tham vấn')}
+                            disabled={updatingAppointId === a.id}
+                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold transition cursor-pointer"
+                          >
+                            Đã tham vấn xong
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-xl flex items-center gap-1">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Đã hoàn thành</span>
+                        </span>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -4240,9 +4386,35 @@ function LoginPage() {
 // 12. ROOT APP ROUTER & WRAPPER
 // ==========================================
 
+const getBasename = () => {
+  const base = import.meta.env.BASE_URL;
+  if (base && base !== './' && base !== '/') {
+    return base.replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/hoc')) {
+    return '/hoc';
+  }
+  return '';
+};
+
 function AppContent() {
   const [emergencyOpen, setEmergencyOpen] = useState(false);
   const [counselorMsgOpen, setCounselorMsgOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // 1. Tự động khôi phục URL từ GitHub Pages 404 redirect (?redirect=...)
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get('redirect');
+      if (redirectPath) {
+        searchParams.delete('redirect');
+        const remainingQuery = searchParams.toString();
+        const targetUrl = decodeURIComponent(redirectPath) + (remainingQuery ? '?' + remainingQuery : '');
+        navigate(targetUrl, { replace: true });
+      }
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50/70 via-sky-50/60 to-purple-50/70 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
@@ -4278,6 +4450,29 @@ function AppContent() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/quan-tri" element={<DashboardPage />} />
           <Route path="/tai-khoan" element={<LoginPage />} />
+
+          {/* Hỗ trợ route khi deploy tĩnh tại sub-directory /hoc/ trên GitHub Pages */}
+          <Route
+            path="/hoc"
+            element={
+              <Home
+                onOpenEmergency={() => setEmergencyOpen(true)}
+                onOpenMessageCounselor={() => setCounselorMsgOpen(true)}
+              />
+            }
+          />
+          <Route path="/hoc/cam-xuc" element={<EmotionPage />} />
+          <Route path="/hoc/tro-ly-ai" element={<AIChatPage />} />
+          <Route path="/hoc/chia-se" element={<ShareCornerPage />} />
+          <Route path="/hoc/chong-bat-nat" element={<BullyReportPage />} />
+          <Route path="/hoc/ky-nang-song" element={<LifeSkillsPage />} />
+          <Route path="/hoc/thu-vien" element={<LifeSkillsPage />} />
+          <Route path="/hoc/bai-viet-da-luu" element={<SavedPostsPage />} />
+          <Route path="/hoc/dang-ky-tu-van" element={<AppointmentPage />} />
+          <Route path="/hoc/dashboard" element={<DashboardPage />} />
+          <Route path="/hoc/quan-tri" element={<DashboardPage />} />
+          <Route path="/hoc/tai-khoan" element={<LoginPage />} />
+          <Route path="/hoc/*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
 
@@ -4303,8 +4498,9 @@ function AppContent() {
 }
 
 export default function App() {
+  const basename = getBasename();
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename || undefined}>
       <AuthProvider>
         <AppContent />
       </AuthProvider>

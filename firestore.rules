@@ -2,9 +2,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Hàm kiểm tra quyền nhân sự nhà trường (Admin BGH & Cô Nguyễn Thị Thùy Trang)
+    // Hàm kiểm tra quyền nhân sự nhà trường (Admin BGH & Cô Nguyễn Thị Thùy Trang & Admin TVDU)
     function isStaff() {
       return request.auth != null && (
+        request.auth.token.email == 'tvdu8st@gmail.com' ||
         request.auth.token.email.matches('.*admin.*') ||
         request.auth.token.email.matches('.*quantri.*') ||
         request.auth.token.email.matches('.*thuytrang.*') ||
@@ -18,13 +19,21 @@ service cloud.firestore {
       // Học sinh không cần đăng nhập được gửi bài tâm sự mới
       allow create: if request.resource.data.content is string &&
                     request.resource.data.content.size() >= 5 &&
-                    request.resource.data.content.size() <= 5000;
+                    request.resource.data.content.size() <= 10000;
       
-      // Chỉ nhân sự nhà trường (Admin / Cô Trang) mới được đọc toàn bộ danh sách
-      allow list, read: if isStaff();
+      // Nhân sự nhà trường được đọc toàn bộ danh sách để trả lời
+      allow list: if isStaff();
       
-      // Chỉ nhân sự nhà trường mới được cập nhật (phản hồi, đổi trạng thái) hoặc xóa
-      allow update, delete: if isStaff();
+      // Đọc 1 bài cụ thể: Cho phép nhân sự hoặc học sinh tra cứu bài có mã bí mật
+      allow get: if isStaff() || (resource.data.secretCode != null);
+      
+      // Nhân sự nhà trường có toàn quyền cập nhật/xóa.
+      // Học sinh không cần tài khoản có thể gửi thêm phản hồi vào mảng responses và chuyển trạng thái về WAITING
+      allow update: if isStaff() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['responses', 'status', 'updatedAt'])
+      );
+      
+      allow delete: if isStaff();
     }
 
     // 2. Báo cáo bạo lực học đường (bullyingReports)
@@ -39,7 +48,19 @@ service cloud.firestore {
       allow read, write: if isStaff();
     }
 
-    // 4. Tài khoản người dùng (users)
+    // 4. Lời nhắn gửi Cô Trang (counselorMessages)
+    match /counselorMessages/{messageId} {
+      allow create: if true;
+      allow read, write: if isStaff();
+    }
+
+    // 5. Nhật ký cảm xúc (emotionLogs)
+    match /emotionLogs/{logId} {
+      allow create, read: if true;
+      allow write: if isStaff();
+    }
+
+    // 6. Tài khoản người dùng (users)
     match /users/{userId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && (request.auth.uid == userId || isStaff());
