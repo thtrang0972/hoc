@@ -59,6 +59,7 @@ export const ShareCorner: React.FC = () => {
   const [replyText, setReplyText] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
+  // === HÀM ĐÃ ĐƯỢC CẬP NHẬT LOGIC BẮT LỖI ===
   const handleSubmitRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
@@ -82,20 +83,28 @@ export const ShareCorner: React.FC = () => {
         }),
       });
 
+      // BƯỚC QUAN TRỌNG: Chặn lỗi 404, 405, 500 từ server
+      if (!res.ok) {
+        throw new Error(`Lỗi máy chủ: HTTP ${res.status}`);
+      }
+
       const data = await res.json();
+      
       if (data.success && data.requestCode) {
         setSubmittedCode(data.requestCode);
         setContent('');
       } else {
-        alert(data.message || 'Có lỗi xảy ra, vui lòng thử lại.');
+        alert(data.message || 'Chưa lưu được dữ liệu vào hệ thống, vui lòng thử lại.');
       }
     } catch (err) {
-      console.error(err);
-      alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+      console.error("Lỗi khi gửi phiếu tư vấn:", err);
+      // Hiển thị thông báo lỗi thật cho học sinh
+      alert('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng hoặc thử lại sau!');
     } finally {
       setIsSubmitting(false);
     }
   };
+  // =========================================
 
   const handleTrackRequest = async (e?: React.FormEvent, codeToUse?: string) => {
     if (e) e.preventDefault();
